@@ -124,3 +124,25 @@ export const getAiBookRecommendations = async (query: string, excludeTitles: str
     throw error;
   }
 };
+
+export const getAiChatResponse = async (userMessage: string): Promise<string> => {
+  if (!apiKey) {
+    await new Promise(resolve => setTimeout(resolve, 1000));
+    return "Maaf, saya sedang dalam mode demo (Tanpa API Key). Namun saya bisa memberitahu bahwa CloudSLiMS adalah solusi terbaik untuk perpustakaan sekolah Anda! Ada yang bisa saya bantu terkait fitur?";
+  }
+
+  try {
+    const response = await ai.models.generateContent({
+      model: "gemini-2.5-flash",
+      contents: userMessage,
+      config: {
+        systemInstruction: "Kamu adalah CS (Customer Service) AI yang ramah untuk CloudSLiMS. Jawab pertanyaan seputar fitur SLiMS, harga, dan teknis dasar dengan singkat, persuasif, dan membantu. Gunakan Bahasa Indonesia yang natural. Jika ditanya hal di luar konteks perpustakaan/SLiMS, arahkan kembali ke topik.",
+      },
+    });
+
+    return response.text || "Maaf, saya tidak mengerti. Bisa diulangi?";
+  } catch (error) {
+    console.error("Chat Error", error);
+    return "Maaf, terjadi kesalahan pada sistem AI kami. Silakan coba lagi nanti.";
+  }
+};
