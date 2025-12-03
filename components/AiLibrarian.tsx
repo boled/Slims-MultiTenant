@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Search, Sparkles, Book, Loader2, Plus } from 'lucide-react';
+import { Search, Sparkles, Book, Loader2, Plus, Brain, FileText } from 'lucide-react';
 import { getAiBookRecommendations } from '../services/geminiService';
 import { BookRecommendation } from '../types';
 
@@ -66,6 +66,39 @@ const AiLibrarian: React.FC = () => {
           <p className="text-slate-300 text-lg max-w-2xl mx-auto">
             Fitur premium CloudSLiMS Enterprise. Gunakan AI untuk mencari buku, mendapatkan ringkasan, dan rekomendasi cerdas dalam hitungan detik.
           </p>
+        </div>
+
+        {/* AI Features Showcase */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-16 animate-fade-in-up">
+          <div className="bg-slate-800/40 backdrop-blur-sm border border-slate-700 p-6 rounded-2xl hover:bg-slate-800/60 transition-colors group">
+            <div className="w-12 h-12 bg-blue-500/10 rounded-xl flex items-center justify-center text-blue-400 mb-4 group-hover:scale-110 transition-transform">
+              <Brain size={24} />
+            </div>
+            <h3 className="text-lg font-bold text-white mb-2">Pencarian Cerdas</h3>
+            <p className="text-slate-400 text-sm leading-relaxed">
+              Memahami konteks pertanyaan siswa, bukan sekadar mencocokkan kata kunci judul buku.
+            </p>
+          </div>
+
+          <div className="bg-slate-800/40 backdrop-blur-sm border border-slate-700 p-6 rounded-2xl hover:bg-slate-800/60 transition-colors group">
+            <div className="w-12 h-12 bg-pink-500/10 rounded-xl flex items-center justify-center text-pink-400 mb-4 group-hover:scale-110 transition-transform">
+              <FileText size={24} />
+            </div>
+            <h3 className="text-lg font-bold text-white mb-2">Ringkasan Instan</h3>
+            <p className="text-slate-400 text-sm leading-relaxed">
+              Menyajikan intisari dan poin utama buku secara otomatis untuk membantu riset siswa.
+            </p>
+          </div>
+
+          <div className="bg-slate-800/40 backdrop-blur-sm border border-slate-700 p-6 rounded-2xl hover:bg-slate-800/60 transition-colors group">
+            <div className="w-12 h-12 bg-amber-500/10 rounded-xl flex items-center justify-center text-amber-400 mb-4 group-hover:scale-110 transition-transform">
+              <Sparkles size={24} />
+            </div>
+            <h3 className="text-lg font-bold text-white mb-2">Rekomendasi Personal</h3>
+            <p className="text-slate-400 text-sm leading-relaxed">
+              Memberikan saran bacaan yang relevan berdasarkan kurikulum dan minat baca siswa.
+            </p>
+          </div>
         </div>
 
         {/* Search Box */}

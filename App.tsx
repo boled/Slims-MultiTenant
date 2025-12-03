@@ -8,9 +8,11 @@ import Pricing from './components/Pricing';
 import Footer from './components/Footer';
 import ScrollToTop from './components/ScrollToTop';
 import RegistrationModal from './components/RegistrationModal';
+import ContactModal from './components/ContactModal';
 
 const App: React.FC = () => {
   const [isRegisterOpen, setIsRegisterOpen] = useState(false);
+  const [isContactOpen, setIsContactOpen] = useState(false);
   const [selectedPlan, setSelectedPlan] = useState<string>('Starter');
   
   // Testimonial Carousel State
@@ -21,6 +23,10 @@ const App: React.FC = () => {
   const openRegistration = (plan: string = 'Starter') => {
     setSelectedPlan(plan);
     setIsRegisterOpen(true);
+  };
+
+  const openContact = () => {
+    setIsContactOpen(true);
   };
 
   // Mitra Data Structure
@@ -138,7 +144,7 @@ const App: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-white">
-      <Navbar onRegister={() => openRegistration('Starter')} />
+      <Navbar onRegister={() => openRegistration('Starter')} onContact={openContact} />
       <main>
         <Hero onRegister={() => openRegistration('Starter')} />
         <Features />
@@ -165,6 +171,7 @@ const App: React.FC = () => {
                         src={mitra.logo} 
                         alt={`Logo Partner ${mitra.name}`} 
                         loading="lazy"
+                        decoding="async"
                         width="64"
                         height="64"
                         className="max-h-full max-w-full object-contain drop-shadow-sm"
@@ -242,6 +249,7 @@ const App: React.FC = () => {
                               src={testi.image} 
                               alt={`Foto profil ${testi.name}`} 
                               loading="lazy"
+                              decoding="async"
                               width="56"
                               height="56"
                               className="w-14 h-14 rounded-full object-cover border-2 border-white shadow-md"
@@ -295,13 +303,17 @@ const App: React.FC = () => {
           </div>
         </section>
       </main>
-      <Footer />
+      <Footer onContact={openContact} />
       <ScrollToTop />
       
       <RegistrationModal 
         isOpen={isRegisterOpen} 
         onClose={() => setIsRegisterOpen(false)}
         selectedPlan={selectedPlan}
+      />
+      <ContactModal 
+        isOpen={isContactOpen} 
+        onClose={() => setIsContactOpen(false)}
       />
     </div>
   );

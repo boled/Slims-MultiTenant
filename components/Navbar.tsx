@@ -4,9 +4,10 @@ import ChatWidget from './ChatWidget';
 
 interface NavbarProps {
   onRegister: () => void;
+  onContact?: () => void;
 }
 
-const Navbar: React.FC<NavbarProps> = ({ onRegister }) => {
+const Navbar: React.FC<NavbarProps> = ({ onRegister, onContact }) => {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isChatOpen, setIsChatOpen] = useState(false);
@@ -69,6 +70,12 @@ const Navbar: React.FC<NavbarProps> = ({ onRegister }) => {
                   {link.name}
                 </a>
               ))}
+              <button
+                onClick={onContact}
+                className="text-sm font-medium text-slate-600 hover:text-primary-600 transition-colors"
+              >
+                Hubungi Kami
+              </button>
               <button 
                 onClick={onRegister}
                 className="bg-slate-900 hover:bg-slate-800 text-white px-5 py-2.5 rounded-full text-sm font-medium transition-colors shadow-lg shadow-slate-900/10"
@@ -109,6 +116,15 @@ const Navbar: React.FC<NavbarProps> = ({ onRegister }) => {
                   {link.name}
                 </a>
               ))}
+              <button 
+                onClick={() => {
+                  setIsMobileMenuOpen(false);
+                  if (onContact) onContact();
+                }}
+                className="block w-full text-left text-base font-medium text-slate-600 hover:text-primary-600"
+              >
+                Hubungi Kami
+              </button>
               <button 
                 onClick={() => {
                   setIsMobileMenuOpen(false);

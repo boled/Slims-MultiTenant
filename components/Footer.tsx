@@ -1,7 +1,11 @@
 import React from 'react';
 import { BookOpen, Facebook, Instagram, Twitter } from 'lucide-react';
 
-const Footer: React.FC = () => {
+interface FooterProps {
+  onContact?: () => void;
+}
+
+const Footer: React.FC<FooterProps> = ({ onContact }) => {
   return (
     <footer className="bg-slate-900 text-slate-300 py-12 border-t border-slate-800">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -37,7 +41,14 @@ const Footer: React.FC = () => {
               <li><a href="#" className="hover:text-white transition-colors">Dokumentasi</a></li>
               <li><a href="#" className="hover:text-white transition-colors">Panduan SLiMS</a></li>
               <li><a href="#" className="hover:text-white transition-colors">Status Server</a></li>
-              <li><a href="#" className="hover:text-white transition-colors">Hubungi Kami</a></li>
+              <li>
+                <button 
+                  onClick={onContact}
+                  className="hover:text-white transition-colors text-left"
+                >
+                  Hubungi Kami
+                </button>
+              </li>
             </ul>
           </div>
 
