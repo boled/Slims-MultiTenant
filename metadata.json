@@ -1,5 +1,5 @@
 {
-  "name": "CloudSLiMS - Multi-Tenant Library System",
-  "description": "A modern landing page for a Multi-Tenant SaaS version of SLiMS (Senayan Library Management System), featuring an AI-powered catalog search demo.",
+  "name": "CloudSLiMS - Aplikasi Perpustakaan Digital Multi-Tenant",
+  "description": "Landing page modern untuk CloudSLiMS, solusi SaaS SLiMS (Senayan Library Management System) untuk sekolah dan universitas. Dilengkapi fitur AI Librarian dan katalog online.",
   "requestFramePermissions": []
 }
