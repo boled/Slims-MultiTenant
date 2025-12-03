@@ -1,5 +1,5 @@
 import React from 'react';
-import { Search, User, BookOpen, Globe, ArrowRight, KeyRound } from 'lucide-react';
+import { Search, User, BookOpen, Globe, ArrowRight, KeyRound, Sparkles } from 'lucide-react';
 
 interface HeroProps {
   onRegister: () => void;
@@ -43,7 +43,7 @@ const Hero: React.FC<HeroProps> = ({ onRegister }) => {
           </p>
 
           {/* SLiMS Classic Search Bar */}
-          <div className="w-full max-w-3xl bg-white/10 p-2 rounded-lg backdrop-blur-md border border-white/20 shadow-2xl">
+          <div className="w-full max-w-3xl bg-white/10 p-2 rounded-lg backdrop-blur-md border border-white/20 shadow-2xl mb-8">
             <div className="flex flex-col sm:flex-row bg-white rounded-md overflow-hidden">
               <div className="hidden sm:flex items-center px-4 bg-slate-50 border-r border-slate-200 text-slate-500 text-sm font-medium">
                 <select className="bg-transparent outline-none cursor-pointer">
@@ -67,6 +67,20 @@ const Hero: React.FC<HeroProps> = ({ onRegister }) => {
               <span className="cursor-pointer hover:text-white underline decoration-dotted">Pencarian Spesifik</span>
               <span className="cursor-pointer hover:text-white underline decoration-dotted">Riwayat Pencarian</span>
             </div>
+          </div>
+
+          {/* New Prominent CTA */}
+          <div className="inline-flex flex-col sm:flex-row items-center gap-4 bg-white/10 hover:bg-white/15 p-1.5 pr-6 pl-6 rounded-full backdrop-blur-md border border-white/20 transition-all animate-fade-in-up" style={{ animationDelay: '0.2s' }}>
+             <div className="flex items-center gap-2 text-blue-100 text-sm font-medium">
+                <Sparkles size={16} className="text-yellow-400" />
+                <span>Ingin punya website perpustakaan seperti ini?</span>
+             </div>
+             <button 
+               onClick={onRegister}
+               className="bg-yellow-400 hover:bg-yellow-300 text-blue-900 font-bold px-6 py-2 rounded-full shadow-lg transition-all hover:scale-105 hover:shadow-yellow-400/20 flex items-center gap-2 text-sm"
+             >
+               Coba Gratis Sekarang <ArrowRight size={16} />
+             </button>
           </div>
         </div>
       </div>
@@ -110,16 +124,24 @@ const Hero: React.FC<HeroProps> = ({ onRegister }) => {
                 ))}
               </div>
               
-              <div className="mt-8 p-4 bg-blue-50 rounded-lg border border-blue-100">
-                <h4 className="font-bold text-blue-900 mb-2">Selamat Datang di CloudSLiMS</h4>
-                <p className="text-sm text-slate-600 leading-relaxed mb-4">
-                  Nikmati kemudahan mengelola perpustakaan dengan sistem berbasis cloud. 
-                  Tidak perlu instalasi manual, tidak perlu server fisik. Fokus pada layanan pustaka Anda.
-                </p>
-                <div className="flex gap-2">
-                   <span className="text-xs bg-white px-2 py-1 rounded border border-blue-200 text-blue-600">#DigitalLibrary</span>
-                   <span className="text-xs bg-white px-2 py-1 rounded border border-blue-200 text-blue-600">#OpenSource</span>
+              <div className="mt-8 p-6 bg-blue-50 rounded-lg border border-blue-100 flex flex-col md:flex-row gap-6 items-center">
+                <div className="flex-1">
+                  <h4 className="font-bold text-blue-900 mb-2 text-lg">Selamat Datang di CloudSLiMS</h4>
+                  <p className="text-sm text-slate-600 leading-relaxed mb-4">
+                    Solusi SLiMS berbasis cloud yang memudahkan sekolah mengelola perpustakaan. 
+                    Tanpa ribet instalasi server, data aman, dan bisa diakses dari mana saja.
+                  </p>
+                  <div className="flex gap-2">
+                     <span className="text-xs bg-white px-2 py-1 rounded border border-blue-200 text-blue-600 font-medium">#DigitalLibrary</span>
+                     <span className="text-xs bg-white px-2 py-1 rounded border border-blue-200 text-blue-600 font-medium">#OpenSource</span>
+                  </div>
                 </div>
+                <button 
+                   onClick={onRegister}
+                   className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-lg shadow-lg hover:shadow-blue-600/20 transition-all text-sm whitespace-nowrap"
+                >
+                  Daftar Akun Baru
+                </button>
               </div>
             </div>
           </div>
