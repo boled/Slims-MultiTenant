@@ -1,7 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { BookOpen, Menu, X } from 'lucide-react';
 
-const Navbar: React.FC = () => {
+interface NavbarProps {
+  onRegister: () => void;
+}
+
+const Navbar: React.FC<NavbarProps> = ({ onRegister }) => {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
@@ -44,7 +48,10 @@ const Navbar: React.FC = () => {
                 {link.name}
               </a>
             ))}
-            <button className="bg-slate-900 hover:bg-slate-800 text-white px-5 py-2.5 rounded-full text-sm font-medium transition-colors shadow-lg shadow-slate-900/10">
+            <button 
+              onClick={onRegister}
+              className="bg-slate-900 hover:bg-slate-800 text-white px-5 py-2.5 rounded-full text-sm font-medium transition-colors shadow-lg shadow-slate-900/10"
+            >
               Coba Gratis
             </button>
           </div>
@@ -75,7 +82,13 @@ const Navbar: React.FC = () => {
                 {link.name}
               </a>
             ))}
-            <button className="w-full bg-primary-600 text-white px-5 py-3 rounded-lg text-sm font-medium">
+            <button 
+              onClick={() => {
+                setIsMobileMenuOpen(false);
+                onRegister();
+              }}
+              className="w-full bg-primary-600 text-white px-5 py-3 rounded-lg text-sm font-medium"
+            >
               Coba Gratis
             </button>
           </div>

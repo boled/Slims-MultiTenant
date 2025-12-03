@@ -2,6 +2,10 @@ import React from 'react';
 import { Check } from 'lucide-react';
 import { PricingTier } from '../types';
 
+interface PricingProps {
+  onRegister: (plan: string) => void;
+}
+
 const tiers: PricingTier[] = [
   {
     name: "Starter",
@@ -44,7 +48,7 @@ const tiers: PricingTier[] = [
   }
 ];
 
-const Pricing: React.FC = () => {
+const Pricing: React.FC<PricingProps> = ({ onRegister }) => {
   return (
     <section id="pricing" className="py-24 bg-slate-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -85,6 +89,7 @@ const Pricing: React.FC = () => {
               </ul>
 
               <button 
+                onClick={() => onRegister(tier.name)}
                 className={`w-full py-3 rounded-xl font-bold transition-all ${
                   tier.recommended 
                     ? 'bg-primary-600 hover:bg-primary-700 text-white shadow-lg shadow-primary-600/25' 

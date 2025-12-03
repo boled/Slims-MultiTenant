@@ -1,7 +1,11 @@
 import React from 'react';
 import { ArrowRight, CheckCircle2, Search, User, Menu } from 'lucide-react';
 
-const Hero: React.FC = () => {
+interface HeroProps {
+  onRegister: () => void;
+}
+
+const Hero: React.FC<HeroProps> = ({ onRegister }) => {
   return (
     <section className="relative pt-32 pb-20 lg:pt-48 lg:pb-32 overflow-hidden">
       {/* Background Decor */}
@@ -30,7 +34,10 @@ const Hero: React.FC = () => {
             </p>
             
             <div className="flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-4">
-              <button className="w-full sm:w-auto px-8 py-4 bg-primary-600 hover:bg-primary-700 text-white rounded-xl font-semibold transition-all shadow-xl shadow-primary-600/20 flex items-center justify-center gap-2 group">
+              <button 
+                onClick={onRegister}
+                className="w-full sm:w-auto px-8 py-4 bg-primary-600 hover:bg-primary-700 text-white rounded-xl font-semibold transition-all shadow-xl shadow-primary-600/20 flex items-center justify-center gap-2 group"
+              >
                 Buat Perpustakaan
                 <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform" />
               </button>

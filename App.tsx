@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import Navbar from './components/Navbar';
 import Hero from './components/Hero';
 import Features from './components/Features';
@@ -6,16 +6,25 @@ import AiLibrarian from './components/AiLibrarian';
 import Pricing from './components/Pricing';
 import Footer from './components/Footer';
 import ScrollToTop from './components/ScrollToTop';
+import RegistrationModal from './components/RegistrationModal';
 
 const App: React.FC = () => {
+  const [isRegisterOpen, setIsRegisterOpen] = useState(false);
+  const [selectedPlan, setSelectedPlan] = useState<string>('Starter');
+
+  const openRegistration = (plan: string = 'Starter') => {
+    setSelectedPlan(plan);
+    setIsRegisterOpen(true);
+  };
+
   return (
     <div className="min-h-screen bg-white">
-      <Navbar />
+      <Navbar onRegister={() => openRegistration('Starter')} />
       <main>
-        <Hero />
+        <Hero onRegister={() => openRegistration('Starter')} />
         <Features />
         <AiLibrarian />
-        <Pricing />
+        <Pricing onRegister={openRegistration} />
         
         {/* FAQ Section (Simple embedded) */}
         <section id="faq" className="py-24 bg-white">
@@ -41,6 +50,12 @@ const App: React.FC = () => {
       </main>
       <Footer />
       <ScrollToTop />
+      
+      <RegistrationModal 
+        isOpen={isRegisterOpen} 
+        onClose={() => setIsRegisterOpen(false)}
+        selectedPlan={selectedPlan}
+      />
     </div>
   );
 };
