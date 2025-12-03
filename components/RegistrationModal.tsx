@@ -129,8 +129,8 @@ Mohon info selanjutnya. Terima kasih.`;
               value={formData.plan}
               onChange={(e) => setFormData({...formData, plan: e.target.value})}
             >
-              <option value="Starter">Starter - Rp 150rb/bln</option>
-              <option value="Pro">Pro - Rp 350rb/bln</option>
+              <option value="Starter">Starter - Rp 150rb/tahun</option>
+              <option value="Pro">Pro - Rp 350rb/tahun</option>
               <option value="Enterprise">Enterprise - Hubungi Kami</option>
             </select>
           </div>

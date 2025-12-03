@@ -54,7 +54,7 @@ const Pricing: React.FC<PricingProps> = ({ onRegister }) => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-16">
           <h2 className="text-3xl font-bold text-slate-900 mb-4">Harga Simpel & Transparan</h2>
-          <p className="text-slate-600">Pilih paket yang sesuai dengan kebutuhan institusi Anda. Bisa upgrade kapan saja.</p>
+          <p className="text-slate-600">Pilih paket yang sesuai dengan kebutuhan institusi Anda. Pembayaran dilakukan per tahun.</p>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl mx-auto">
@@ -76,7 +76,7 @@ const Pricing: React.FC<PricingProps> = ({ onRegister }) => {
               
               <div className="mb-6">
                 <span className="text-4xl font-bold text-slate-900">{tier.price}</span>
-                {tier.price.startsWith('Rp') && <span className="text-slate-500">/bulan</span>}
+                {tier.price.startsWith('Rp') && <span className="text-slate-500">/tahun</span>}
               </div>
 
               <ul className="space-y-4 mb-8 flex-1">

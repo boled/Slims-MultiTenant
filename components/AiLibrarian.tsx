@@ -95,14 +95,37 @@ const AiLibrarian: React.FC = () => {
           </p>
         </div>
 
-        {/* Results */}
+        {/* Loading State with Spinner & Skeleton */}
         {loading && (
-          <div className="flex flex-col items-center justify-center py-12 space-y-4 animate-pulse">
-            <div className="w-12 h-12 rounded-full border-4 border-primary-500 border-t-transparent animate-spin"></div>
-            <p className="text-slate-400">AI sedang mencari di rak digital...</p>
+          <div className="space-y-6 animate-in fade-in duration-500">
+             <div className="flex items-center justify-center gap-3 text-primary-400">
+                <Loader2 size={24} className="animate-spin" />
+                <span className="font-medium">Sedang menganalisis koleksi buku...</span>
+             </div>
+
+             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+               {[1, 2, 3].map((i) => (
+                 <div key={i} className="bg-slate-800/30 border border-slate-700/50 rounded-xl p-6 h-full flex flex-col animate-pulse">
+                    <div className="flex justify-between mb-4">
+                      <div className="w-12 h-12 bg-slate-700/50 rounded-lg"></div>
+                      <div className="w-16 h-6 bg-slate-700/50 rounded"></div>
+                    </div>
+                    <div className="h-7 bg-slate-700/50 rounded w-3/4 mb-3"></div>
+                    <div className="h-4 bg-slate-700/50 rounded w-1/2 mb-4"></div>
+                    <div className="h-6 bg-slate-700/50 rounded w-1/3 mb-6"></div>
+                    <div className="space-y-3 flex-1">
+                      <div className="h-3 bg-slate-700/50 rounded w-full"></div>
+                      <div className="h-3 bg-slate-700/50 rounded w-full"></div>
+                      <div className="h-3 bg-slate-700/50 rounded w-5/6"></div>
+                      <div className="h-3 bg-slate-700/50 rounded w-4/5"></div>
+                    </div>
+                 </div>
+               ))}
+             </div>
           </div>
         )}
 
+        {/* Results */}
         {!loading && hasSearched && results.length > 0 && (
           <div className="space-y-8">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
