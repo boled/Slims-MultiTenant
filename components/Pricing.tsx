@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useRef, useState, useEffect } from 'react';
 import { Check } from 'lucide-react';
 import { PricingTier } from '../types';
 
@@ -49,19 +49,50 @@ const tiers: PricingTier[] = [
 ];
 
 const Pricing: React.FC<PricingProps> = ({ onRegister }) => {
+  const [isVisible, setIsVisible] = useState(false);
+  const sectionRef = useRef<HTMLElement>(null);
+
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setIsVisible(true);
+        }
+      },
+      { threshold: 0.1 }
+    );
+
+    if (sectionRef.current) {
+      observer.observe(sectionRef.current);
+    }
+
+    return () => {
+      if (sectionRef.current) {
+        observer.unobserve(sectionRef.current);
+      }
+    };
+  }, []);
+
   return (
-    <section id="pricing" className="py-24 bg-slate-50">
+    <section id="pricing" ref={sectionRef} className="py-24 bg-slate-50 overflow-hidden">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="text-center mb-16">
+        
+        {/* Header Animation */}
+        <div className={`text-center mb-16 transition-all duration-700 ease-out transform ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`}>
           <h2 className="text-3xl font-bold text-slate-900 mb-4">Harga Simpel & Transparan</h2>
           <p className="text-slate-600">Pilih paket yang sesuai dengan kebutuhan institusi Anda. Pembayaran dilakukan per tahun.</p>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl mx-auto">
-          {tiers.map((tier) => (
+          {tiers.map((tier, index) => (
             <div 
               key={tier.name}
-              className={`relative bg-white rounded-2xl shadow-xl border ${tier.recommended ? 'border-primary-500 ring-2 ring-primary-500/20' : 'border-slate-200'} p-8 flex flex-col`}
+              className={`relative bg-white rounded-2xl shadow-xl border ${tier.recommended ? 'border-primary-500 ring-2 ring-primary-500/20' : 'border-slate-200'} p-8 flex flex-col transition-all duration-700 ease-out transform`}
+              style={{
+                opacity: isVisible ? 1 : 0,
+                transform: isVisible ? 'translateY(0)' : 'translateY(40px)',
+                transitionDelay: `${index * 150}ms` // Staggered delay effect
+              }}
             >
               {tier.recommended && (
                 <div className="absolute top-0 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-primary-600 text-white px-4 py-1 rounded-full text-sm font-bold shadow-lg">

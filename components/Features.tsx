@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { Cloud, Globe, ShieldCheck, Smartphone, Users, Zap, ChevronLeft, ChevronRight } from 'lucide-react';
 import { Feature } from '../types';
 
@@ -38,6 +38,32 @@ const features: Feature[] = [
 const Features: React.FC = () => {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [itemsPerPage, setItemsPerPage] = useState(1);
+  const [isVisible, setIsVisible] = useState(false);
+  const sectionRef = useRef<HTMLElement>(null);
+
+  // Intersection Observer for animation
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setIsVisible(true);
+          // Optional: Disconnect if you only want it to run once
+          // observer.disconnect(); 
+        }
+      },
+      { threshold: 0.1 }
+    );
+
+    if (sectionRef.current) {
+      observer.observe(sectionRef.current);
+    }
+
+    return () => {
+      if (sectionRef.current) {
+        observer.unobserve(sectionRef.current);
+      }
+    };
+  }, []);
 
   useEffect(() => {
     const handleResize = () => {
@@ -81,9 +107,15 @@ const Features: React.FC = () => {
   };
 
   return (
-    <section id="features" className="py-24 bg-white relative">
+    <section 
+      id="features" 
+      ref={sectionRef} 
+      className="py-24 bg-white relative overflow-hidden"
+    >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="text-center max-w-3xl mx-auto mb-16">
+        
+        {/* Animated Header */}
+        <div className={`text-center max-w-3xl mx-auto mb-16 transition-all duration-700 ease-out transform ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`}>
           <h2 className="text-primary-600 font-semibold tracking-wide uppercase text-sm mb-3">Fitur Unggulan</h2>
           <h3 className="text-3xl font-bold text-slate-900 sm:text-4xl mb-6">
             Kenapa Memilih CloudSLiMS?
@@ -93,7 +125,8 @@ const Features: React.FC = () => {
           </p>
         </div>
 
-        <div className="relative group/carousel px-0 md:px-4">
+        {/* Animated Carousel Container */}
+        <div className={`relative group/carousel px-0 md:px-4 transition-all duration-1000 delay-200 ease-out transform ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`}>
           <div className="overflow-hidden p-4 -m-4">
             <div 
               className="flex transition-transform duration-500 ease-out"
@@ -143,7 +176,7 @@ const Features: React.FC = () => {
         </div>
 
         {/* Dots */}
-        <div className="flex justify-center mt-8 gap-2">
+        <div className={`flex justify-center mt-8 gap-2 transition-opacity duration-700 delay-500 ${isVisible ? 'opacity-100' : 'opacity-0'}`}>
           {Array.from({ length: features.length - itemsPerPage + 1 }).map((_, idx) => (
             <button
               key={idx}
