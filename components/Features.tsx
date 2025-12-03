@@ -5,7 +5,7 @@ import { Feature } from '../types';
 const features: Feature[] = [
   {
     title: "Domain Kustom",
-    description: "Dapatkan subdomain gratis (sekolah.cloudslims.id) atau gunakan domain sekolah Anda sendiri.",
+    description: "Dapatkan subdomain gratis (sekolah.eslims.my.id) atau gunakan domain sekolah Anda sendiri.",
     icon: Globe
   },
   {

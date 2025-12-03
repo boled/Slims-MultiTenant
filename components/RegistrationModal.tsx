@@ -31,7 +31,7 @@ const RegistrationModal: React.FC<RegistrationModalProps> = ({ isOpen, onClose, 
     
 👤 *Nama*: ${formData.name}
 🏫 *Instansi*: ${formData.institution}
-🌐 *Subdomain*: ${formData.subdomain}.cloudslims.id
+🌐 *Subdomain*: ${formData.subdomain}.eslims.my.id
 📱 *No. WA*: ${formData.phone}
 📦 *Paket*: ${formData.plan}
 
@@ -104,7 +104,7 @@ Mohon info selanjutnya. Terima kasih.`;
                 onChange={(e) => setFormData({...formData, subdomain: e.target.value.replace(/[^a-z0-9-]/g, '')})}
               />
               <span className="bg-slate-100 border border-slate-300 px-3 py-2 text-slate-500 rounded-r-lg text-sm flex items-center">
-                .cloudslims.id
+                .eslims.my.id
               </span>
             </div>
             <p className="text-xs text-slate-500 mt-1">Hanya huruf kecil, angka, dan strip (-).</p>

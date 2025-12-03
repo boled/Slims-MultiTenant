@@ -14,7 +14,7 @@ const tiers: PricingTier[] = [
     features: [
       "Hingga 2.000 Judul Buku",
       "500 Anggota",
-      "Subdomain cloudslims.id",
+      "Subdomain eslims.my.id",
       "Backup Mingguan",
       "Support via Email"
     ]
