@@ -2,8 +2,26 @@ import { GoogleGenAI, Type } from "@google/genai";
 import { BookRecommendation } from '../types';
 
 // Initialize Gemini
-// Note: In a real production build, ensure process.env.API_KEY is defined in your build environment
-const apiKey = process.env.API_KEY || ''; 
+// Safely retrieve API Key from various environment configurations (Vite, CRA, Node)
+const getApiKey = (): string => {
+  try {
+    // Vite uses import.meta.env
+    // @ts-ignore
+    if (typeof import.meta !== 'undefined' && import.meta.env) {
+      // @ts-ignore
+      return import.meta.env.VITE_API_KEY || import.meta.env.API_KEY || '';
+    }
+    // Webpack/CRA uses process.env
+    if (typeof process !== 'undefined' && process.env) {
+      return process.env.API_KEY || process.env.REACT_APP_API_KEY || '';
+    }
+  } catch (e) {
+    console.warn("Error accessing environment variables:", e);
+  }
+  return '';
+};
+
+const apiKey = getApiKey();
 const ai = new GoogleGenAI({ apiKey });
 
 export const getAiBookRecommendations = async (query: string, excludeTitles: string[] = []): Promise<BookRecommendation[]> => {
