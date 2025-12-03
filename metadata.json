@@ -1,0 +1,5 @@
+{
+  "name": "CloudSLiMS - Multi-Tenant Library System",
+  "description": "A modern landing page for a Multi-Tenant SaaS version of SLiMS (Senayan Library Management System), featuring an AI-powered catalog search demo.",
+  "requestFramePermissions": []
+}
