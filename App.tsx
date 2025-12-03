@@ -163,7 +163,10 @@ const App: React.FC = () => {
                     <div className="h-16 w-16 mb-3 relative flex items-center justify-center transition-transform group-hover/item:scale-110">
                       <img 
                         src={mitra.logo} 
-                        alt={`Logo ${mitra.name}`} 
+                        alt={`Logo Partner ${mitra.name}`} 
+                        loading="lazy"
+                        width="64"
+                        height="64"
                         className="max-h-full max-w-full object-contain drop-shadow-sm"
                         onError={(e) => handleImageError(e, mitra.name)}
                       />
@@ -188,10 +191,10 @@ const App: React.FC = () => {
                 { q: "Bisakah saya migrasi data dari SLiMS lokal?", a: "Tentu! Tim support kami akan membantu proses migrasi database SQL (.sql) dan folder images Anda ke cloud kami secara gratis." },
                 { q: "Apakah ini SLiMS resmi?", a: "Kami adalah penyedia layanan hosting (SaaS) yang menggunakan software open source SLiMS. Kami berkontribusi balik ke komunitas SLiMS." }
               ].map((item, i) => (
-                <div key={i} className="border border-slate-200 rounded-lg p-6 bg-white hover:shadow-md transition-all">
+                <article key={i} className="border border-slate-200 rounded-lg p-6 bg-white hover:shadow-md transition-all">
                   <h3 className="font-bold text-slate-900 mb-2">{item.q}</h3>
                   <p className="text-slate-600">{item.a}</p>
-                </div>
+                </article>
               ))}
             </div>
           </div>
@@ -204,7 +207,7 @@ const App: React.FC = () => {
               <h2 className="text-sm font-bold text-primary-600 uppercase tracking-widest mb-3">Testimoni</h2>
               <h3 className="text-3xl font-bold text-slate-900 mb-4">Apa Kata Mereka?</h3>
               <p className="text-slate-600 max-w-2xl mx-auto text-lg">
-                Pengalaman nyata dari pustakawan dan kepala sekolah yang telah memodernisasi perpustakaan mereka.
+                Pengalaman nyata dari pustakawan dan kepala sekolah yang telah memodernisasi perpustakaan mereka menggunakan CloudSLiMS.
               </p>
             </div>
             
@@ -237,7 +240,10 @@ const App: React.FC = () => {
                           <div className="relative shrink-0">
                             <img 
                               src={testi.image} 
-                              alt={testi.name} 
+                              alt={`Foto profil ${testi.name}`} 
+                              loading="lazy"
+                              width="56"
+                              height="56"
                               className="w-14 h-14 rounded-full object-cover border-2 border-white shadow-md"
                             />
                             <div className="absolute -bottom-1 -right-1 bg-green-500 w-4 h-4 rounded-full border-2 border-white"></div>

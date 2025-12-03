@@ -36,17 +36,17 @@ const Hero: React.FC<HeroProps> = ({ onRegister }) => {
           </div>
 
           <h1 className="text-3xl md:text-5xl font-bold text-white mb-2 font-serif tracking-wide text-shadow-sm animate-fade-in-up">
-            Senayan Library Management System
+            CloudSLiMS: Senayan Library Management System
           </h1>
-          <p className="text-blue-100 text-lg md:text-xl font-light mb-10 max-w-2xl">
-            (Cloud Edition) - Multi-Tenant Library Automation
-          </p>
+          <h2 className="text-blue-100 text-lg md:text-xl font-light mb-10 max-w-2xl">
+            Solusi Hosting SLiMS Multi-Tenant - Aplikasi Perpustakaan Sekolah Terbaik Tanpa Server
+          </h2>
 
           {/* SLiMS Classic Search Bar */}
           <div className="w-full max-w-3xl bg-white/10 p-2 rounded-lg backdrop-blur-md border border-white/20 shadow-2xl mb-8">
             <div className="flex flex-col sm:flex-row bg-white rounded-md overflow-hidden">
               <div className="hidden sm:flex items-center px-4 bg-slate-50 border-r border-slate-200 text-slate-500 text-sm font-medium">
-                <select className="bg-transparent outline-none cursor-pointer">
+                <select className="bg-transparent outline-none cursor-pointer" aria-label="Kategori Pencarian">
                   <option>Judul</option>
                   <option>Pengarang</option>
                   <option>ISBN</option>
@@ -57,6 +57,7 @@ const Hero: React.FC<HeroProps> = ({ onRegister }) => {
                 type="text" 
                 placeholder="Kata kunci pencarian..." 
                 className="flex-1 px-6 py-4 text-slate-800 focus:outline-none placeholder:text-slate-400"
+                aria-label="Kotak Pencarian Katalog"
               />
               <button className="bg-green-600 hover:bg-green-700 text-white px-8 py-4 font-bold flex items-center justify-center gap-2 transition-colors">
                 <Search size={20} />

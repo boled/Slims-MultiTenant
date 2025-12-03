@@ -40,6 +40,10 @@ const Features: React.FC = () => {
   const [itemsPerPage, setItemsPerPage] = useState(1);
   const [isVisible, setIsVisible] = useState(false);
   const sectionRef = useRef<HTMLElement>(null);
+  
+  // Touch handling refs
+  const touchStartRef = useRef<number | null>(null);
+  const touchEndRef = useRef<number | null>(null);
 
   // Intersection Observer for animation
   useEffect(() => {
@@ -47,8 +51,6 @@ const Features: React.FC = () => {
       ([entry]) => {
         if (entry.isIntersecting) {
           setIsVisible(true);
-          // Optional: Disconnect if you only want it to run once
-          // observer.disconnect(); 
         }
       },
       { threshold: 0.1 }
@@ -106,6 +108,30 @@ const Features: React.FC = () => {
     setCurrentIndex(Math.min(index, maxIndex));
   };
 
+  // Touch Event Handlers
+  const onTouchStart = (e: React.TouchEvent) => {
+    touchEndRef.current = null;
+    touchStartRef.current = e.targetTouches[0].clientX;
+  };
+
+  const onTouchMove = (e: React.TouchEvent) => {
+    touchEndRef.current = e.targetTouches[0].clientX;
+  };
+
+  const onTouchEnd = () => {
+    if (!touchStartRef.current || !touchEndRef.current) return;
+    const distance = touchStartRef.current - touchEndRef.current;
+    const isLeftSwipe = distance > 50;
+    const isRightSwipe = distance < -50;
+
+    if (isLeftSwipe) {
+      nextSlide();
+    }
+    if (isRightSwipe) {
+      prevSlide();
+    }
+  };
+
   return (
     <section 
       id="features" 
@@ -126,10 +152,15 @@ const Features: React.FC = () => {
         </div>
 
         {/* Animated Carousel Container */}
-        <div className={`relative group/carousel px-0 md:px-4 transition-all duration-1000 delay-200 ease-out transform ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`}>
+        <div 
+          className={`relative group/carousel px-0 md:px-4 transition-all duration-1000 delay-200 ease-out transform ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`}
+          onTouchStart={onTouchStart}
+          onTouchMove={onTouchMove}
+          onTouchEnd={onTouchEnd}
+        >
           <div className="overflow-hidden p-4 -m-4">
             <div 
-              className="flex transition-transform duration-500 ease-out"
+              className="flex transition-transform duration-500 ease-out will-change-transform"
               style={{ transform: `translateX(-${currentIndex * (100 / itemsPerPage)}%)` }}
             >
               {features.map((feature, index) => (

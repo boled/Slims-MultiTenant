@@ -128,7 +128,7 @@ export const getAiBookRecommendations = async (query: string, excludeTitles: str
 export const getAiChatResponse = async (userMessage: string): Promise<string> => {
   if (!apiKey) {
     await new Promise(resolve => setTimeout(resolve, 1000));
-    return "Maaf, saya sedang dalam mode demo (Tanpa API Key). Namun saya bisa memberitahu bahwa CloudSLiMS adalah solusi terbaik untuk perpustakaan sekolah Anda! Ada yang bisa saya bantu terkait fitur?";
+    return "Maaf, saya sedang dalam mode demo (Tanpa API Key). Namun, saya sangat menyarankan Anda melihat bagian **Fitur** untuk melihat kecanggihan AI Librarian kami, atau scoll ke bagian **Harga** untuk penawaran terbaik!";
   }
 
   try {
@@ -136,7 +136,7 @@ export const getAiChatResponse = async (userMessage: string): Promise<string> =>
       model: "gemini-2.5-flash",
       contents: userMessage,
       config: {
-        systemInstruction: "Kamu adalah CS (Customer Service) AI yang ramah untuk CloudSLiMS. Jawab pertanyaan seputar fitur SLiMS, harga, dan teknis dasar dengan singkat, persuasif, dan membantu. Gunakan Bahasa Indonesia yang natural. Jika ditanya hal di luar konteks perpustakaan/SLiMS, arahkan kembali ke topik.",
+        systemInstruction: "Kamu adalah Asisten Virtual Cerdas dan Proaktif untuk CloudSLiMS. Tugas utamamu adalah membantu calon pelanggan memahami keunggulan hosting SLiMS tanpa ribet server dan mendorong mereka untuk mendaftar.\n\nPanduan Gaya Bicara:\n1. Ramah, antusias, dan profesional.\n2. Selalu berusaha mengaitkan jawaban dengan Keuntungan Unik CloudSLiMS (seperti: Tanpa Server Fisik, AI Librarian, Backup Harian, Mobile Friendly).\n3. Secara proaktif arahkan user untuk mengecek bagian 'Fitur' atau 'Harga' jika relevan.\n4. Jika user bertanya soal biaya, tekankan betapa hematnya ini dibanding maintenance server sendiri.\n5. Gunakan Bahasa Indonesia yang natural.\n\nContoh respon jika ditanya 'Apa itu CloudSLiMS?': 'CloudSLiMS adalah solusi perpustakaan digital modern berbasis SLiMS. Anda tidak perlu pusing beli server mahal atau maintenance ribet. Cukup daftar, dan perpustakaan sekolah Anda langsung online! Ingin lihat pilihan paket hemat kami di bagian Harga?'",
       },
     });
 

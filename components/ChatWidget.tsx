@@ -18,7 +18,7 @@ const ChatWidget: React.FC<ChatWidgetProps> = ({ isOpen, onClose }) => {
     {
       id: 'welcome',
       role: 'bot',
-      text: 'Halo! 👋 Saya asisten virtual CloudSLiMS. Ada yang bisa saya bantu mengenai fitur atau harga?'
+      text: 'Halo! 👋 Saya siap membantu Anda memodernisasi perpustakaan sekolah. Penasaran dengan fitur AI Librarian kami atau ingin cek harga paket hemat?'
     }
   ]);
   const [input, setInput] = useState('');
