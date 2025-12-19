@@ -17,10 +17,10 @@ VITE_SUPABASE_ANON_KEY=your-anon-key
 
 ### 2. Setup Database Schema
 
-Buka menu **SQL Editor** di dashboard Supabase dan jalankan script berikut untuk membuat tabel yang diperlukan:
+Buka menu **SQL Editor** di dashboard Supabase dan jalankan script berikut. Script ini akan membuat tabel dan mengatur **Security Policies (RLS)** agar Admin bisa mengelola semua data.
 
 ```sql
--- Create Profiles Table (extends Auth Users)
+-- 1. Create Profiles Table (extends Auth Users)
 create table profiles (
   id uuid references auth.users not null primary key,
   full_name text,
@@ -31,48 +31,95 @@ create table profiles (
   created_at timestamp with time zone default timezone('utc'::text, now())
 );
 
--- Create Subscriptions Table
+-- 2. Create Subscriptions Table
 create table subscriptions (
   id uuid default uuid_generate_v4() primary key,
   user_id uuid references profiles(id) not null,
   plan_name text not null,
   price numeric not null,
-  status text default 'pending', -- 'pending', 'active', 'rejected'
+  status text default 'pending', -- 'pending', 'active', 'rejected', 'expired'
   payment_proof_url text,
   created_at timestamp with time zone default timezone('utc'::text, now()),
   updated_at timestamp with time zone default timezone('utc'::text, now())
 );
 
--- Enable RLS (Row Level Security)
+-- 3. Enable RLS (Row Level Security)
 alter table profiles enable row level security;
 alter table subscriptions enable row level security;
 
--- RLS Policies for Profiles
-create policy "Public profiles are viewable by everyone." on profiles for select using ( true );
-create policy "Users can insert their own profile." on profiles for insert with check ( auth.uid() = id );
-create policy "Users can update own profile." on profiles for update using ( auth.uid() = id );
+-- 4. Create Helper Function to Check Admin Role (Prevents Recursion)
+create or replace function public.is_admin()
+returns boolean as $$
+begin
+  return exists (
+    select 1 from profiles
+    where id = auth.uid()
+    and role = 'admin'
+  );
+end;
+$$ language plpgsql security definer;
 
--- RLS Policies for Subscriptions
-create policy "Users can view own subs." on subscriptions for select using ( auth.uid() = user_id );
-create policy "Users can insert own subs." on subscriptions for insert with check ( auth.uid() = user_id );
-create policy "Users can update own subs (upload proof)." on subscriptions for update using ( auth.uid() = user_id );
+-- 5. RLS Policies for Profiles
+-- Semua orang (auth) bisa membaca profil (untuk join query)
+create policy "Public profiles are viewable by everyone" 
+on profiles for select using ( true );
+
+-- User bisa update profil sendiri
+create policy "Users can update own profile" 
+on profiles for update using ( auth.uid() = id );
+
+-- Admin bisa update semua profil
+create policy "Admins can update any profile" 
+on profiles for update using ( is_admin() );
+
+-- User bisa insert profil sendiri saat register
+create policy "Users can insert own profile" 
+on profiles for insert with check ( auth.uid() = id );
+
+-- 6. RLS Policies for Subscriptions
+-- User bisa lihat punya sendiri, Admin bisa lihat semua
+create policy "Read Access" 
+on subscriptions for select using ( 
+  auth.uid() = user_id OR is_admin() 
+);
+
+-- User bisa insert langganan sendiri
+create policy "Insert Access" 
+on subscriptions for insert with check ( 
+  auth.uid() = user_id 
+);
+
+-- User bisa update (upload bukti), Admin bisa update status/harga/paket
+create policy "Update Access" 
+on subscriptions for update using ( 
+  auth.uid() = user_id OR is_admin() 
+);
+
+-- Hanya Admin yang bisa menghapus langganan
+create policy "Delete Access (Admin Only)" 
+on subscriptions for delete using ( 
+  is_admin() 
+);
 ```
 
 ### 3. Setup Storage
 
 1. Buka menu **Storage** di dashboard Supabase.
 2. Buat bucket baru bernama `payment-proofs`.
-3. Set bucket menjadi **Public** atau atur Policy agar bisa dibaca/ditulis.
-   
-   **Policy Storage (Contoh sederhana untuk Publik):**
-   *   INSERT: Allow Authenticated users.
-   *   SELECT: Allow Public.
+3. Set bucket menjadi **Public**.
+4. Tambahkan **Storage Policy** agar user bisa upload:
+   *   Buat policy baru pada bucket `payment-proofs`.
+   *   Pilih "Give users access to all individual operations".
+   *   Select: `true` (Public)
+   *   Insert: `auth.role() = 'authenticated'`
+   *   Update: `auth.role() = 'authenticated'`
 
-### 4. Setup Admin
+### 4. Setup Admin (Penting!)
 
-Untuk membuat user menjadi Admin:
-1. Register user melalui aplikasi biasa.
-2. Buka **Table Editor** > tabel `profiles`.
-3. Ubah kolom `role` dari `user` menjadi `admin`.
-4. Login kembali dengan user tersebut untuk mengakses Dashboard Admin.
+Karena default registrasi adalah `user`, Anda harus mengubah satu akun menjadi `admin` secara manual di database agar bisa mengakses Dashboard Admin.
 
+1. Register user baru melalui aplikasi web (misal: `admin@cloudslims.com`).
+2. Buka dashboard Supabase > **Table Editor** > tabel `profiles`.
+3. Cari user tersebut, ubah kolom `role` dari `user` menjadi `admin`.
+4. Klik **Save**.
+5. Logout dan Login kembali di aplikasi. Anda akan diarahkan ke Dashboard Admin.

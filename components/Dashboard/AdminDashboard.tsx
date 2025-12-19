@@ -19,7 +19,8 @@ import {
   Filter,
   Calendar,
   Smartphone,
-  Globe
+  Globe,
+  TrendingUp
 } from 'lucide-react';
 
 interface AdminDashboardProps {
@@ -33,7 +34,7 @@ interface JoinedSubscription extends Subscription {
 const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout }) => {
   const [subscriptions, setSubscriptions] = useState<JoinedSubscription[]>([]);
   const [loading, setLoading] = useState(true);
-  const [stats, setStats] = useState({ totalUsers: 0, pending: 0, revenue: 0 });
+  const [stats, setStats] = useState({ totalUsers: 0, pending: 0, revenue: 0, mrr: 0 });
 
   // Features State
   const [searchTerm, setSearchTerm] = useState('');
@@ -83,8 +84,13 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout }) => {
         // Calculate Stats
         const totalUsers = new Set(data.map((s: any) => s.user_id)).size;
         const pending = data.filter((s: any) => s.status === 'pending').length;
-        const revenue = data.filter((s: any) => s.status === 'active').reduce((acc: number, curr: any) => acc + curr.price, 0);
-        setStats({ totalUsers, pending, revenue });
+        
+        // Revenue Calculation (Assuming stored price is Annual)
+        const activeSubscriptions = data.filter((s: any) => s.status === 'active');
+        const revenue = activeSubscriptions.reduce((acc: number, curr: any) => acc + curr.price, 0);
+        const mrr = revenue / 12; // Monthly Recurring Revenue
+
+        setStats({ totalUsers, pending, revenue, mrr });
       }
     } catch (err) {
       console.error(err);
@@ -242,7 +248,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout }) => {
         </header>
 
         {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
           <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-200 flex items-center gap-4 hover:shadow-md transition-shadow">
             <div className="p-3 bg-blue-100 text-blue-600 rounded-lg"><Users size={24} /></div>
             <div>
@@ -260,8 +266,15 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout }) => {
           <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-200 flex items-center gap-4 hover:shadow-md transition-shadow">
             <div className="p-3 bg-green-100 text-green-600 rounded-lg"><DollarSign size={24} /></div>
             <div>
-              <p className="text-slate-500 text-sm">Est. Revenue</p>
+              <p className="text-slate-500 text-sm">Total Revenue (ARR)</p>
               <h3 className="text-2xl font-bold">Rp {stats.revenue.toLocaleString()}</h3>
+            </div>
+          </div>
+          <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-200 flex items-center gap-4 hover:shadow-md transition-shadow">
+            <div className="p-3 bg-indigo-100 text-indigo-600 rounded-lg"><TrendingUp size={24} /></div>
+            <div>
+              <p className="text-slate-500 text-sm">Est. MRR (Bulanan)</p>
+              <h3 className="text-2xl font-bold">Rp {stats.mrr.toLocaleString(undefined, { maximumFractionDigits: 0 })}</h3>
             </div>
           </div>
         </div>
