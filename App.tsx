@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { Quote, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Quote, ChevronLeft, ChevronRight, Loader2 } from 'lucide-react';
 import Navbar from './components/Navbar';
 import Hero from './components/Hero';
 import Features from './components/Features';
@@ -10,19 +10,92 @@ import ScrollToTop from './components/ScrollToTop';
 import RegistrationModal from './components/RegistrationModal';
 import ContactModal from './components/ContactModal';
 import CallToAction from './components/CallToAction';
+import UserDashboard from './components/Dashboard/UserDashboard';
+import AdminDashboard from './components/Dashboard/AdminDashboard';
+import { supabase } from './services/supabaseClient';
+import { UserProfile } from './types';
 
 const App: React.FC = () => {
   const [isRegisterOpen, setIsRegisterOpen] = useState(false);
   const [isContactOpen, setIsContactOpen] = useState(false);
   const [selectedPlan, setSelectedPlan] = useState<string>('Starter');
+  const [authMode, setAuthMode] = useState<'login' | 'register'>('register');
   
-  // Testimonial Carousel State
+  // Auth State
+  const [session, setSession] = useState<any>(null);
+  const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
+  const [loadingAuth, setLoadingAuth] = useState(true);
+
+  // Testimonial State
   const [testiIndex, setTestiIndex] = useState(0);
   const [testiItemsPerPage, setTestiItemsPerPage] = useState(1);
   const [isTestiPaused, setIsTestiPaused] = useState(false);
 
+  // 1. Check Session on Mount
+  useEffect(() => {
+    const checkSession = async () => {
+      try {
+        const { data: { session }, error } = await supabase.auth.getSession();
+        if (error) throw error;
+        
+        setSession(session);
+        if (session) {
+          await fetchProfile(session.user.id);
+        } else {
+          setLoadingAuth(false);
+        }
+      } catch (error) {
+        console.warn("Auth check failed (likely due to missing credentials):", error);
+        setLoadingAuth(false);
+      }
+    };
+
+    checkSession();
+
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, session) => {
+      setSession(session);
+      if (session) fetchProfile(session.user.id);
+      else {
+        setUserProfile(null);
+        setLoadingAuth(false);
+      }
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
+
+  const fetchProfile = async (userId: string) => {
+    try {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', userId)
+        .single();
+      
+      if (!error && data) setUserProfile(data);
+    } catch (error) {
+      console.error("Error fetching profile:", error);
+    } finally {
+      setLoadingAuth(false);
+    }
+  };
+
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
+    setSession(null);
+    setUserProfile(null);
+  };
+
   const openRegistration = (plan: string = 'Starter') => {
     setSelectedPlan(plan);
+    setAuthMode('register');
+    setIsRegisterOpen(true);
+  };
+
+  const openLogin = () => {
+    setAuthMode('login');
     setIsRegisterOpen(true);
   };
 
@@ -143,16 +216,47 @@ const App: React.FC = () => {
     }
   };
 
+  // ------------------------------------------------------------------
+  // VIEW RENDER LOGIC
+  // ------------------------------------------------------------------
+
+  if (loadingAuth) {
+    return (
+      <div className="min-h-screen bg-white flex items-center justify-center">
+        <Loader2 className="animate-spin text-primary-600" size={40} />
+      </div>
+    );
+  }
+
+  // If Logged In: Show Dashboard based on Role
+  if (session && userProfile) {
+    if (userProfile.role === 'admin') {
+      return <AdminDashboard onLogout={handleLogout} />;
+    } else {
+      return <UserDashboard user={userProfile} onLogout={handleLogout} />;
+    }
+  }
+
+  // If Not Logged In: Show Landing Page
   return (
     <div className="min-h-screen bg-white">
-      <Navbar onRegister={() => openRegistration('Starter')} onContact={openContact} />
+      {/* Pass openLogin to Navbar to handle existing 'Login' needs if any */}
+      <Navbar onRegister={() => openRegistration('Starter')} onContact={openContact} /> 
+      
+      {/* Add a floating Login Button for demo purposes if not present in Navbar */}
+      <div className="fixed top-24 right-4 z-40 md:hidden">
+        <button onClick={openLogin} className="bg-slate-900 text-white px-4 py-2 rounded-full shadow text-xs font-bold">
+           Member Login
+        </button>
+      </div>
+
       <main>
         <Hero onRegister={() => openRegistration('Starter')} />
         <Features />
         <AiLibrarian />
         <Pricing onRegister={openRegistration} />
         
-        {/* Mitra Section - Infinite Scrolling Marquee */}
+        {/* Mitra Section */}
         <section className="py-12 bg-white border-t border-slate-100 overflow-hidden">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mb-8">
              <div className="text-center">
@@ -208,7 +312,7 @@ const App: React.FC = () => {
           </div>
         </section>
 
-        {/* Testimonials Section - Carousel */}
+        {/* Testimonials Section */}
         <section id="testimonials" className="py-24 bg-white border-t border-slate-200 overflow-hidden">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="text-center mb-12">
@@ -237,22 +341,15 @@ const App: React.FC = () => {
                       style={{ width: `${100 / testiItemsPerPage}%` }}
                     >
                       <div className="h-full bg-slate-50 p-8 rounded-2xl border border-slate-100 shadow-sm hover:shadow-lg transition-all duration-300 relative group flex flex-col">
-                        {/* Quote Icon */}
                         <div className="absolute top-6 right-8 text-primary-100 group-hover:text-primary-200 transition-colors">
                           <Quote size={40} className="fill-current" />
                         </div>
-                        
                         <p className="text-slate-600 mb-8 relative z-10 italic leading-relaxed flex-1">"{testi.quote}"</p>
-                        
                         <div className="flex items-center gap-4 mt-auto">
                           <div className="relative shrink-0">
                             <img 
                               src={testi.image} 
                               alt={`Foto profil ${testi.name}`} 
-                              loading="lazy"
-                              decoding="async"
-                              width="56"
-                              height="56"
                               className="w-14 h-14 rounded-full object-cover border-2 border-white shadow-md"
                             />
                             <div className="absolute -bottom-1 -right-1 bg-green-500 w-4 h-4 rounded-full border-2 border-white"></div>
@@ -273,33 +370,15 @@ const App: React.FC = () => {
               <button 
                 onClick={prevTesti}
                 className="absolute top-1/2 left-0 sm:-left-4 -translate-y-1/2 w-10 h-10 md:w-12 md:h-12 rounded-full bg-white shadow-lg border border-slate-200 text-slate-600 hover:text-primary-600 hover:border-primary-200 transition-all z-10 flex items-center justify-center opacity-0 group-hover/carousel:opacity-100 focus:opacity-100"
-                aria-label="Previous testimonial"
               >
                 <ChevronLeft size={20} />
               </button>
               <button 
                 onClick={nextTesti}
                 className="absolute top-1/2 right-0 sm:-right-4 -translate-y-1/2 w-10 h-10 md:w-12 md:h-12 rounded-full bg-white shadow-lg border border-slate-200 text-slate-600 hover:text-primary-600 hover:border-primary-200 transition-all z-10 flex items-center justify-center opacity-0 group-hover/carousel:opacity-100 focus:opacity-100"
-                aria-label="Next testimonial"
               >
                 <ChevronRight size={20} />
               </button>
-            </div>
-
-            {/* Dots Indicators */}
-            <div className="flex justify-center mt-8 gap-2">
-              {Array.from({ length: Math.ceil(testimonials.length - testiItemsPerPage + 1) }).map((_, idx) => (
-                <button
-                  key={idx}
-                  onClick={() => setTestiIndex(idx)}
-                  className={`rounded-full transition-all duration-300 ${
-                    idx === testiIndex 
-                      ? 'bg-primary-600 w-8 h-2' 
-                      : 'bg-slate-300 hover:bg-slate-400 w-2 h-2'
-                  }`}
-                  aria-label={`Go to testimonial slide ${idx + 1}`}
-                />
-              ))}
             </div>
           </div>
         </section>
@@ -318,6 +397,7 @@ const App: React.FC = () => {
         isOpen={isRegisterOpen} 
         onClose={() => setIsRegisterOpen(false)}
         selectedPlan={selectedPlan}
+        initialMode={authMode}
       />
       <ContactModal 
         isOpen={isContactOpen} 
