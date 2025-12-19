@@ -39,6 +39,7 @@ create table subscriptions (
   price numeric not null,
   status text default 'pending', -- 'pending', 'active', 'rejected', 'expired'
   payment_proof_url text,
+  valid_until timestamp with time zone, -- Kolom masa aktif
   created_at timestamp with time zone default timezone('utc'::text, now()),
   updated_at timestamp with time zone default timezone('utc'::text, now())
 );

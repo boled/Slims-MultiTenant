@@ -3,9 +3,10 @@ import { Search, User, BookOpen, Globe, ArrowRight, KeyRound, Sparkles } from 'l
 
 interface HeroProps {
   onRegister: () => void;
+  onLogin: () => void;
 }
 
-const Hero: React.FC<HeroProps> = ({ onRegister }) => {
+const Hero: React.FC<HeroProps> = ({ onRegister, onLogin }) => {
   return (
     <section className="relative pt-24 pb-12 bg-slate-100 min-h-screen flex flex-col">
       {/* SLiMS Classic Header Strip mimicking the top navigation bar */}
@@ -162,34 +163,34 @@ const Hero: React.FC<HeroProps> = ({ onRegister }) => {
                       <div className="w-16 h-16 bg-slate-100 rounded-full mx-auto flex items-center justify-center mb-2 text-slate-400">
                         <User size={32} />
                       </div>
-                      <p className="text-xs text-slate-500">Silahkan login untuk reservasi buku.</p>
+                      <p className="text-xs text-slate-500">Silahkan login untuk mengelola perpustakaan.</p>
                    </div>
                    
-                   <div className="space-y-3">
+                   <div className="space-y-3 cursor-pointer" onClick={onLogin}>
                      <div className="relative">
-                       <input type="text" disabled placeholder="ID Anggota" className="w-full pl-10 pr-4 py-2 bg-slate-50 border border-slate-200 rounded text-sm disabled:opacity-60" />
+                       <input type="text" readOnly placeholder="Email / ID" className="w-full pl-10 pr-4 py-2 bg-slate-50 border border-slate-200 rounded text-sm cursor-pointer hover:bg-slate-100 focus:outline-none" />
                        <User size={16} className="absolute left-3 top-2.5 text-slate-400" />
                      </div>
                      <div className="relative">
-                       <input type="password" disabled placeholder="Kata Sandi" className="w-full pl-10 pr-4 py-2 bg-slate-50 border border-slate-200 rounded text-sm disabled:opacity-60" />
+                       <input type="password" readOnly placeholder="Kata Sandi" className="w-full pl-10 pr-4 py-2 bg-slate-50 border border-slate-200 rounded text-sm cursor-pointer hover:bg-slate-100 focus:outline-none" />
                        <KeyRound size={16} className="absolute left-3 top-2.5 text-slate-400" />
                      </div>
                    </div>
 
                    <button 
-                    onClick={onRegister}
-                    className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 rounded transition-colors text-sm shadow-md"
+                    onClick={onLogin}
+                    className="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-2 rounded transition-colors text-sm shadow-md"
                    >
-                     Login / Buat Akun
+                     Masuk Dashboard
                    </button>
                    
                    <div className="text-center pt-2 border-t border-slate-100 mt-2">
-                      <p className="text-xs text-slate-500 mb-2">Belum punya perpustakaan?</p>
+                      <p className="text-xs text-slate-500 mb-2">Belum punya akun sekolah?</p>
                       <button 
                         onClick={onRegister}
-                        className="text-xs font-bold text-green-600 hover:underline flex items-center justify-center gap-1 w-full"
+                        className="text-xs font-bold text-blue-600 hover:underline flex items-center justify-center gap-1 w-full"
                       >
-                        DAFTAR CLOUDSLIMS <ArrowRight size={12} />
+                        DAFTAR SEKARANG <ArrowRight size={12} />
                       </button>
                    </div>
                 </div>

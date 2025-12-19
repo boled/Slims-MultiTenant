@@ -1,13 +1,14 @@
 import React, { useState, useEffect } from 'react';
-import { BookOpen, Menu, X, Bot, Sparkles } from 'lucide-react';
+import { BookOpen, Menu, X, Bot, Sparkles, LogIn } from 'lucide-react';
 import ChatWidget from './ChatWidget';
 
 interface NavbarProps {
   onRegister: () => void;
+  onLogin: () => void;
   onContact?: () => void;
 }
 
-const Navbar: React.FC<NavbarProps> = ({ onRegister, onContact }) => {
+const Navbar: React.FC<NavbarProps> = ({ onRegister, onLogin, onContact }) => {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isChatOpen, setIsChatOpen] = useState(false);
@@ -76,12 +77,22 @@ const Navbar: React.FC<NavbarProps> = ({ onRegister, onContact }) => {
               >
                 Hubungi Kami
               </button>
-              <button 
-                onClick={onRegister}
-                className="bg-slate-900 hover:bg-slate-800 text-white px-5 py-2.5 rounded-full text-sm font-medium transition-colors shadow-lg shadow-slate-900/10"
-              >
-                Coba Gratis
-              </button>
+              
+              <div className="flex items-center gap-3 pl-4 border-l border-slate-200">
+                <button 
+                  onClick={onLogin}
+                  className="text-sm font-bold text-slate-700 hover:text-primary-600 transition-colors flex items-center gap-2"
+                >
+                  <LogIn size={18} />
+                  Masuk
+                </button>
+                <button 
+                  onClick={onRegister}
+                  className="bg-slate-900 hover:bg-slate-800 text-white px-5 py-2.5 rounded-full text-sm font-medium transition-colors shadow-lg shadow-slate-900/10"
+                >
+                  Coba Gratis
+                </button>
+              </div>
             </div>
 
             {/* Mobile Menu Button */}
@@ -125,21 +136,33 @@ const Navbar: React.FC<NavbarProps> = ({ onRegister, onContact }) => {
               >
                 Hubungi Kami
               </button>
-              <button 
-                onClick={() => {
-                  setIsMobileMenuOpen(false);
-                  onRegister();
-                }}
-                className="w-full bg-primary-600 text-white px-5 py-3 rounded-lg text-sm font-medium"
-              >
-                Coba Gratis
-              </button>
+              
+              <div className="border-t border-slate-100 pt-4 mt-2 space-y-3">
+                <button 
+                  onClick={() => {
+                    setIsMobileMenuOpen(false);
+                    onLogin();
+                  }}
+                  className="flex items-center gap-2 w-full text-left text-base font-bold text-slate-700 hover:text-primary-600 px-2"
+                >
+                  <LogIn size={20} /> Masuk Member
+                </button>
+                <button 
+                  onClick={() => {
+                    setIsMobileMenuOpen(false);
+                    onRegister();
+                  }}
+                  className="w-full bg-primary-600 text-white px-5 py-3 rounded-lg text-sm font-medium"
+                >
+                  Coba Gratis
+                </button>
+              </div>
             </div>
           </div>
         )}
       </nav>
 
-      {/* Chat Widget Integration */}
+      {/* ChatWidget Integration */}
       <ChatWidget isOpen={isChatOpen} onClose={() => setIsChatOpen(false)} />
     </>
   );

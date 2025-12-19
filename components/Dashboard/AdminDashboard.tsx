@@ -20,7 +20,8 @@ import {
   Calendar,
   Smartphone,
   Globe,
-  TrendingUp
+  TrendingUp,
+  Clock
 } from 'lucide-react';
 
 interface AdminDashboardProps {
@@ -102,7 +103,16 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout }) => {
   const updateStatus = async (id: string, newStatus: 'active' | 'rejected') => {
     if (!confirm(`Ubah status menjadi ${newStatus}?`)) return;
     try {
-      const { error } = await supabase.from('subscriptions').update({ status: newStatus }).eq('id', id);
+      const updates: any = { status: newStatus };
+      
+      // Jika di-approve menjadi active, set masa aktif 1 tahun dari sekarang
+      if (newStatus === 'active') {
+        const nextYear = new Date();
+        nextYear.setFullYear(nextYear.getFullYear() + 1);
+        updates.valid_until = nextYear.toISOString();
+      }
+
+      const { error } = await supabase.from('subscriptions').update(updates).eq('id', id);
       if (error) throw error;
       fetchData();
       if (isViewModalOpen) setIsViewModalOpen(false); // Close modal if open to refresh context
@@ -174,14 +184,23 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout }) => {
         if (editFormData.plan_name === 'Starter') newPrice = 150000;
         if (editFormData.plan_name === 'Pro') newPrice = 350000;
       }
+      
+      // Jika status diubah manual jadi active lewat edit, update tanggal validasi jika belum ada
+      const updates: any = {
+        plan_name: editFormData.plan_name,
+        status: editFormData.status,
+        price: newPrice
+      };
+
+      if (editFormData.status === 'active' && !editingItem.valid_until) {
+         const nextYear = new Date();
+         nextYear.setFullYear(nextYear.getFullYear() + 1);
+         updates.valid_until = nextYear.toISOString();
+      }
 
       const { error: subError } = await supabase
         .from('subscriptions')
-        .update({
-          plan_name: editFormData.plan_name,
-          status: editFormData.status,
-          price: newPrice
-        })
+        .update(updates)
         .eq('id', editingItem.id);
 
       if (subError) throw subError;
@@ -335,7 +354,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout }) => {
                   <th className="px-6 py-3 font-medium">Instansi / Nama</th>
                   <th className="px-6 py-3 font-medium">Paket</th>
                   <th className="px-6 py-3 font-medium">Bukti Bayar</th>
-                  <th className="px-6 py-3 font-medium">Status</th>
+                  <th className="px-6 py-3 font-medium">Status & Masa Aktif</th>
                   <th className="px-6 py-3 font-medium text-center">Aksi</th>
                 </tr>
               </thead>
@@ -366,13 +385,21 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout }) => {
                       )}
                     </td>
                     <td className="px-6 py-4">
-                      <span className={`px-2 py-1 rounded-full text-xs font-bold uppercase ${
-                        sub.status === 'active' ? 'bg-green-100 text-green-700' :
-                        sub.status === 'pending' ? 'bg-yellow-100 text-yellow-700' :
-                        'bg-red-100 text-red-700'
-                      }`}>
-                        {sub.status}
-                      </span>
+                      <div className="flex flex-col items-start gap-1">
+                        <span className={`px-2 py-1 rounded-full text-xs font-bold uppercase ${
+                          sub.status === 'active' ? 'bg-green-100 text-green-700' :
+                          sub.status === 'pending' ? 'bg-yellow-100 text-yellow-700' :
+                          'bg-red-100 text-red-700'
+                        }`}>
+                          {sub.status}
+                        </span>
+                        {sub.status === 'active' && sub.valid_until && (
+                          <span className="text-[10px] text-slate-500 flex items-center gap-1">
+                            <Clock size={10} />
+                            Exp: {new Date(sub.valid_until).toLocaleDateString('id-ID')}
+                          </span>
+                        )}
+                      </div>
                     </td>
                     <td className="px-6 py-4">
                       <div className="flex items-center justify-center gap-2">
@@ -388,7 +415,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout }) => {
                         {/* Validation Actions */}
                         {sub.status === 'pending' && (
                           <>
-                            <button onClick={() => updateStatus(sub.id, 'active')} className="p-1.5 bg-green-100 text-green-700 rounded hover:bg-green-200 transition-colors" title="Approve">
+                            <button onClick={() => updateStatus(sub.id, 'active')} className="p-1.5 bg-green-100 text-green-700 rounded hover:bg-green-200 transition-colors" title="Approve & Activate 1 Year">
                               <Check size={16} />
                             </button>
                             <button onClick={() => updateStatus(sub.id, 'rejected')} className="p-1.5 bg-red-100 text-red-700 rounded hover:bg-red-200 transition-colors" title="Reject">
@@ -613,6 +640,21 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout }) => {
                     ) : (
                       <div className="bg-slate-50 border border-dashed border-slate-300 rounded-lg h-32 flex items-center justify-center text-slate-400 text-sm">
                         Tidak ada bukti
+                      </div>
+                    )}
+                    
+                    {/* Add Active Until Info Here */}
+                    {viewingItem.valid_until && (
+                      <div className="mt-4 bg-green-50 border border-green-200 rounded-lg p-3 text-center">
+                        <div className="text-xs text-green-600 font-bold uppercase mb-1">Berlaku Sampai</div>
+                        <div className="font-medium text-green-800">
+                          {new Date(viewingItem.valid_until).toLocaleDateString('id-ID', { 
+                            weekday: 'long', 
+                            year: 'numeric', 
+                            month: 'long', 
+                            day: 'numeric' 
+                          })}
+                        </div>
                       </div>
                     )}
                  </div>

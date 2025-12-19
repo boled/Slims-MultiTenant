@@ -40,6 +40,7 @@ export interface Subscription {
   status: 'pending' | 'active' | 'rejected' | 'expired';
   price: number;
   payment_proof_url?: string | null;
+  valid_until?: string | null; // Tanggal berakhir masa aktif
   created_at: string;
   updated_at: string;
   // Join fields

@@ -241,17 +241,17 @@ const App: React.FC = () => {
   return (
     <div className="min-h-screen bg-white">
       {/* Pass openLogin to Navbar to handle existing 'Login' needs if any */}
-      <Navbar onRegister={() => openRegistration('Starter')} onContact={openContact} /> 
+      <Navbar 
+        onRegister={() => openRegistration('Starter')} 
+        onLogin={openLogin}
+        onContact={openContact} 
+      /> 
       
-      {/* Add a floating Login Button for demo purposes if not present in Navbar */}
-      <div className="fixed top-24 right-4 z-40 md:hidden">
-        <button onClick={openLogin} className="bg-slate-900 text-white px-4 py-2 rounded-full shadow text-xs font-bold">
-           Member Login
-        </button>
-      </div>
-
       <main>
-        <Hero onRegister={() => openRegistration('Starter')} />
+        <Hero 
+          onRegister={() => openRegistration('Starter')} 
+          onLogin={openLogin}
+        />
         <Features />
         <AiLibrarian />
         <Pricing onRegister={openRegistration} />

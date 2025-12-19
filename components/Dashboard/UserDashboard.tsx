@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { supabase } from '../../services/supabaseClient';
 import { UserProfile, Subscription } from '../../types';
-import { Upload, CheckCircle, Clock, AlertCircle, LogOut, FileImage } from 'lucide-react';
+import { Upload, CheckCircle, Clock, AlertCircle, LogOut, FileImage, Calendar } from 'lucide-react';
 
 interface UserDashboardProps {
   user: UserProfile;
@@ -135,6 +135,21 @@ const UserDashboard: React.FC<UserDashboardProps> = ({ user, onLogout }) => {
                         {subscription.status}
                       </span>
                     </div>
+                    
+                    {/* Expiry Date Display */}
+                    {subscription.status === 'active' && subscription.valid_until && (
+                      <div className="mt-4 p-3 bg-blue-50 text-blue-800 rounded-lg flex items-center gap-3">
+                        <Calendar size={20} className="text-blue-600" />
+                        <div>
+                          <p className="text-xs text-blue-600 font-semibold uppercase">Masa Aktif Sampai</p>
+                          <p className="font-bold">
+                            {new Date(subscription.valid_until).toLocaleDateString('id-ID', { 
+                              day: 'numeric', month: 'long', year: 'numeric' 
+                            })}
+                          </p>
+                        </div>
+                      </div>
+                    )}
                   </div>
 
                   <div className="flex-1 bg-slate-50 p-6 rounded-lg border border-dashed border-slate-300 flex flex-col items-center justify-center text-center">
