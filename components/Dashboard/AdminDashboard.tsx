@@ -52,7 +52,8 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout }) => {
     institution: '',
     subdomain: '',
     plan_name: '',
-    status: ''
+    status: '',
+    valid_until: ''
   });
 
   // View Details Modal State
@@ -147,7 +148,8 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout }) => {
       institution: item.profiles?.institution || '',
       subdomain: item.profiles?.subdomain || '',
       plan_name: item.plan_name,
-      status: item.status
+      status: item.status,
+      valid_until: item.valid_until ? new Date(item.valid_until).toISOString().split('T')[0] : ''
     });
     setIsEditModalOpen(true);
   };
@@ -189,10 +191,12 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout }) => {
       const updates: any = {
         plan_name: editFormData.plan_name,
         status: editFormData.status,
-        price: newPrice
+        price: newPrice,
+        valid_until: editFormData.valid_until ? new Date(editFormData.valid_until).toISOString() : null
       };
 
-      if (editFormData.status === 'active' && !editingItem.valid_until) {
+      // Auto-set 1 year if activating and no date set
+      if (editFormData.status === 'active' && !updates.valid_until) {
          const nextYear = new Date();
          nextYear.setFullYear(nextYear.getFullYear() + 1);
          updates.valid_until = nextYear.toISOString();
@@ -559,6 +563,17 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout }) => {
                     <option value="rejected">Rejected</option>
                     <option value="expired">Expired</option>
                   </select>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 mb-1">Masa Aktif Sampai</label>
+                  <input 
+                    type="date" 
+                    className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
+                    value={editFormData.valid_until}
+                    onChange={(e) => setEditFormData({...editFormData, valid_until: e.target.value})}
+                  />
+                  <p className="text-xs text-slate-500 mt-1">Kosongkan untuk set otomatis 1 tahun saat status Active.</p>
                 </div>
               </div>
 
