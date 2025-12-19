@@ -9,6 +9,7 @@ import Footer from './components/Footer';
 import ScrollToTop from './components/ScrollToTop';
 import RegistrationModal from './components/RegistrationModal';
 import ContactModal from './components/ContactModal';
+import CallToAction from './components/CallToAction';
 
 const App: React.FC = () => {
   const [isRegisterOpen, setIsRegisterOpen] = useState(false);
@@ -302,6 +303,13 @@ const App: React.FC = () => {
             </div>
           </div>
         </section>
+
+        {/* CTA Section */}
+        <CallToAction 
+          onRegister={() => openRegistration('Starter')} 
+          onContact={openContact} 
+        />
+
       </main>
       <Footer onContact={openContact} />
       <ScrollToTop />
