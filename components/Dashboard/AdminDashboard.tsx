@@ -25,7 +25,8 @@ import {
   CheckCircle,
   XCircle,
   Building2,
-  CreditCard
+  CreditCard,
+  Bell
 } from 'lucide-react';
 
 interface AdminDashboardProps {
@@ -64,9 +65,30 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout }) => {
   const [isViewModalOpen, setIsViewModalOpen] = useState(false);
   const [viewingItem, setViewingItem] = useState<JoinedSubscription | null>(null);
   const [userHistory, setUserHistory] = useState<JoinedSubscription[]>([]);
+  const [approvalConfig, setApprovalConfig] = useState({
+    price: 0,
+    valid_until: ''
+  });
 
   useEffect(() => {
     fetchData();
+
+    // Subscribe to realtime changes on subscriptions table
+    const channel = supabase
+      .channel('admin-dashboard-changes')
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'subscriptions' },
+        (payload) => {
+          // Refresh data when any change occurs in subscriptions
+          fetchData();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, []);
 
   // Reset page when filters change
@@ -131,6 +153,33 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout }) => {
     }
   };
 
+  const handleApprove = async () => {
+    if (!viewingItem) return;
+    
+    if (!approvalConfig.price || !approvalConfig.valid_until) {
+      alert("Mohon lengkapi konfigurasi harga dan tanggal berakhir.");
+      return;
+    }
+
+    if (!confirm(`Setujui langganan dengan harga Rp ${approvalConfig.price.toLocaleString()} sampai ${approvalConfig.valid_until}?`)) return;
+
+    try {
+        const { error } = await supabase.from('subscriptions').update({
+            status: 'active',
+            price: approvalConfig.price,
+            valid_until: new Date(approvalConfig.valid_until).toISOString()
+        }).eq('id', viewingItem.id);
+
+        if (error) throw error;
+
+        alert("Langganan berhasil diaktifkan.");
+        setIsViewModalOpen(false);
+        fetchData();
+    } catch (err: any) {
+        alert("Gagal: " + err.message);
+    }
+  };
+
   const deleteSubscription = async (id: string, userId: string) => {
     if (!confirm("Apakah Anda yakin ingin menghapus data ini secara permanen?")) return;
     
@@ -168,6 +217,15 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout }) => {
     // Filter history for this user from the already fetched subscriptions
     const history = subscriptions.filter(sub => sub.user_id === item.user_id);
     setUserHistory(history);
+    
+    // Initialize config for approval
+    const nextYear = new Date();
+    nextYear.setFullYear(nextYear.getFullYear() + 1);
+    setApprovalConfig({
+      price: item.price,
+      valid_until: nextYear.toISOString().split('T')[0]
+    });
+
     setIsViewModalOpen(true);
   };
 
@@ -288,13 +346,27 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout }) => {
               <h3 className="text-2xl font-bold">{stats.totalUsers}</h3>
             </div>
           </div>
-          <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-200 flex items-center gap-4 hover:shadow-md transition-shadow">
-            <div className="p-3 bg-yellow-100 text-yellow-600 rounded-lg"><AlertCircle size={24} /></div>
+          
+          {/* Enhanced Notification Card */}
+          <div className={`bg-white p-6 rounded-xl shadow-sm border flex items-center gap-4 hover:shadow-md transition-shadow relative overflow-visible ${stats.pending > 0 ? 'border-red-200 bg-red-50/10' : 'border-slate-200'}`}>
+            {stats.pending > 0 && (
+              <span className="absolute -top-1 -right-1 flex h-4 w-4">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-4 w-4 bg-red-500 text-[10px] text-white font-bold items-center justify-center flex">
+                  {stats.pending > 9 ? '9+' : stats.pending}
+                </span>
+              </span>
+            )}
+            <div className={`p-3 rounded-lg ${stats.pending > 0 ? 'bg-red-100 text-red-600' : 'bg-yellow-100 text-yellow-600'}`}>
+               <AlertCircle size={24} />
+            </div>
             <div>
-              <p className="text-slate-500 text-sm">Pending Validasi</p>
-              <h3 className="text-2xl font-bold">{stats.pending}</h3>
+              <p className={`text-sm ${stats.pending > 0 ? 'text-red-600 font-bold' : 'text-slate-500'}`}>Pending Validasi</p>
+              <h3 className={`text-2xl font-bold ${stats.pending > 0 ? 'text-red-700' : ''}`}>{stats.pending}</h3>
+              {stats.pending > 0 && <p className="text-[10px] text-red-500 font-medium animate-pulse">Perlu tindakan segera</p>}
             </div>
           </div>
+
           <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-200 flex items-center gap-4 hover:shadow-md transition-shadow">
             <div className="p-3 bg-green-100 text-green-600 rounded-lg"><DollarSign size={24} /></div>
             <div>
@@ -425,12 +497,9 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout }) => {
                           <Eye size={16} />
                         </button>
 
-                        {/* Validation Actions */}
+                        {/* Validation Actions for Quick Access */}
                         {sub.status === 'pending' && (
                           <>
-                            <button onClick={() => updateStatus(sub.id, 'active')} className="p-1.5 bg-green-100 text-green-700 rounded hover:bg-green-200 transition-colors" title="Approve & Activate 1 Year">
-                              <Check size={16} />
-                            </button>
                             <button onClick={() => updateStatus(sub.id, 'rejected')} className="p-1.5 bg-red-100 text-red-700 rounded hover:bg-red-200 transition-colors" title="Reject">
                               <X size={16} />
                             </button>
@@ -774,6 +843,41 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout }) => {
                 </div>
               </div>
 
+              {/* Approval Form Section */}
+              {viewingItem.status === 'pending' && (
+                <div className="mt-8 bg-yellow-50 p-5 rounded-lg border border-yellow-200">
+                  <h5 className="font-bold text-slate-800 mb-4 flex items-center gap-2">
+                     <CheckCircle size={18} className="text-yellow-600" /> Validasi & Persetujuan
+                  </h5>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                     <div>
+                       <label className="block text-xs font-semibold text-slate-500 uppercase mb-1">Konfirmasi Harga (Rp)</label>
+                       <div className="relative">
+                          <span className="absolute left-3 top-2.5 text-slate-400 text-sm">Rp</span>
+                          <input 
+                            type="number" 
+                            className="w-full pl-8 pr-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-yellow-500 outline-none"
+                            value={approvalConfig.price}
+                            onChange={e => setApprovalConfig({...approvalConfig, price: Number(e.target.value)})}
+                          />
+                       </div>
+                     </div>
+                     <div>
+                       <label className="block text-xs font-semibold text-slate-500 uppercase mb-1">Masa Aktif Sampai</label>
+                       <input 
+                         type="date" 
+                         className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-yellow-500 outline-none"
+                         value={approvalConfig.valid_until}
+                         onChange={e => setApprovalConfig({...approvalConfig, valid_until: e.target.value})}
+                       />
+                     </div>
+                  </div>
+                  <p className="text-xs text-yellow-700 mt-3">
+                     * Pastikan harga dan tanggal berakhir sudah sesuai dengan bukti pembayaran sebelum menyetujui.
+                  </p>
+                </div>
+              )}
+
             </div>
             
             <div className="p-4 border-t bg-slate-50 flex justify-between items-center">
@@ -782,7 +886,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout }) => {
                  {viewingItem.status === 'pending' && (
                     <>
                       <button 
-                        onClick={() => updateStatus(viewingItem.id, 'active')}
+                        onClick={handleApprove}
                         className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg flex items-center gap-2 transition-colors font-medium text-sm"
                       >
                         <CheckCircle size={16} /> Approve & Aktifkan

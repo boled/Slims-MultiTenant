@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { supabase } from '../../services/supabaseClient';
 import { UserProfile, Subscription } from '../../types';
-import { Upload, CheckCircle, Clock, AlertCircle, LogOut, FileImage, Calendar, AlertTriangle, RefreshCw, CreditCard, Wallet, Download } from 'lucide-react';
+import { Upload, CheckCircle, Clock, AlertCircle, LogOut, FileImage, Calendar, AlertTriangle, RefreshCw, CreditCard, Wallet, Download, History } from 'lucide-react';
 import { jsPDF } from 'jspdf';
 
 interface UserDashboardProps {
@@ -11,26 +11,29 @@ interface UserDashboardProps {
 
 const UserDashboard: React.FC<UserDashboardProps> = ({ user, onLogout }) => {
   const [subscription, setSubscription] = useState<Subscription | null>(null);
+  const [history, setHistory] = useState<Subscription[]>([]);
   const [uploading, setUploading] = useState(false);
   const [loading, setLoading] = useState(true);
   const [renewing, setRenewing] = useState(false);
 
   useEffect(() => {
-    fetchSubscription();
+    fetchSubscriptions();
   }, [user.id]);
 
-  const fetchSubscription = async () => {
+  const fetchSubscriptions = async () => {
     try {
       const { data, error } = await supabase
         .from('subscriptions')
         .select('*')
         .eq('user_id', user.id)
-        .order('created_at', { ascending: false })
-        .limit(1)
-        .single();
+        .order('created_at', { ascending: false });
       
       if (!error && data) {
-        setSubscription(data);
+        // Set the most recent one as the active/main subscription
+        if (data.length > 0) {
+          setSubscription(data[0]);
+        }
+        setHistory(data);
       }
     } catch (error) {
       console.error(error);
@@ -70,7 +73,7 @@ const UserDashboard: React.FC<UserDashboardProps> = ({ user, onLogout }) => {
       if (dbError) throw dbError;
 
       alert("Bukti pembayaran berhasil diupload!");
-      fetchSubscription();
+      fetchSubscriptions();
     } catch (error: any) {
       alert("Gagal upload: " + error.message);
     } finally {
@@ -85,7 +88,6 @@ const UserDashboard: React.FC<UserDashboardProps> = ({ user, onLogout }) => {
     setRenewing(true);
     try {
       // Create a NEW subscription record for the renewal
-      // This preserves history and creates a new pending invoice
       const { error } = await supabase
         .from('subscriptions')
         .insert([{
@@ -98,7 +100,7 @@ const UserDashboard: React.FC<UserDashboardProps> = ({ user, onLogout }) => {
       if (error) throw error;
 
       alert("Tagihan perpanjangan berhasil dibuat. Silakan upload bukti pembayaran.");
-      fetchSubscription(); // Will reload and show the new pending subscription
+      fetchSubscriptions(); 
     } catch (err: any) {
       alert("Gagal memproses perpanjangan: " + err.message);
     } finally {
@@ -106,9 +108,7 @@ const UserDashboard: React.FC<UserDashboardProps> = ({ user, onLogout }) => {
     }
   };
 
-  const downloadInvoice = () => {
-    if (!subscription) return;
-
+  const downloadInvoice = (subItem: Subscription) => {
     const doc = new jsPDF();
     const primaryColor = '#2563eb';
     
@@ -127,8 +127,8 @@ const UserDashboard: React.FC<UserDashboardProps> = ({ user, onLogout }) => {
     doc.setFontSize(10);
     doc.setTextColor(0);
     
-    const today = new Date().toLocaleDateString('id-ID');
-    const invoiceId = subscription.id.split('-')[0].toUpperCase();
+    const date = new Date(subItem.created_at).toLocaleDateString('id-ID');
+    const invoiceId = subItem.id.split('-')[0].toUpperCase();
 
     // Left Side (Bill To)
     doc.setFont("helvetica", "bold");
@@ -140,8 +140,8 @@ const UserDashboard: React.FC<UserDashboardProps> = ({ user, onLogout }) => {
 
     // Right Side (Invoice Detail)
     doc.text(`No. Invoice: INV-${invoiceId}`, 130, 45);
-    doc.text(`Tanggal: ${today}`, 130, 52);
-    doc.text(`Status: ${subscription.status.toUpperCase()}`, 130, 58);
+    doc.text(`Tanggal: ${date}`, 130, 52);
+    doc.text(`Status: ${subItem.status.toUpperCase()}`, 130, 58);
 
     // Table Content
     let yPos = 80;
@@ -157,7 +157,7 @@ const UserDashboard: React.FC<UserDashboardProps> = ({ user, onLogout }) => {
     
     // Table Item
     doc.setFont("helvetica", "bold");
-    doc.text(`Paket Langganan CloudSLiMS: ${subscription.plan_name}`, 25, yPos);
+    doc.text(`Paket Langganan CloudSLiMS: ${subItem.plan_name}`, 25, yPos);
     doc.setFont("helvetica", "normal");
     doc.setFontSize(9);
     doc.text(`Domain: ${user.subdomain}.eslims.my.id`, 25, yPos + 6);
@@ -165,7 +165,7 @@ const UserDashboard: React.FC<UserDashboardProps> = ({ user, onLogout }) => {
     
     // Price
     doc.setFontSize(10);
-    doc.text(`Rp ${subscription.price.toLocaleString('id-ID')}`, 160, yPos);
+    doc.text(`Rp ${subItem.price.toLocaleString('id-ID')}`, 160, yPos);
     
     // Total Line
     yPos += 20;
@@ -176,7 +176,7 @@ const UserDashboard: React.FC<UserDashboardProps> = ({ user, onLogout }) => {
     doc.setFont("helvetica", "bold");
     doc.text("TOTAL TAGIHAN:", 120, yPos);
     doc.setTextColor(primaryColor);
-    doc.text(`Rp ${subscription.price.toLocaleString('id-ID')}`, 160, yPos);
+    doc.text(`Rp ${subItem.price.toLocaleString('id-ID')}`, 160, yPos);
 
     // Payment Info
     yPos += 20;
@@ -208,7 +208,7 @@ const UserDashboard: React.FC<UserDashboardProps> = ({ user, onLogout }) => {
     doc.setTextColor(150);
     doc.text("Terima kasih telah mempercayakan layanan perpustakaan digital Anda kepada CloudSLiMS.", 105, 280, { align: "center" });
 
-    doc.save(`Invoice-CloudSLiMS-${user.subdomain}-${Date.now()}.pdf`);
+    doc.save(`Invoice-${invoiceId}.pdf`);
   };
 
   // Helper to calculate days remaining
@@ -234,7 +234,9 @@ const UserDashboard: React.FC<UserDashboardProps> = ({ user, onLogout }) => {
           <p className="text-xs text-slate-400">User Dashboard</p>
         </div>
         <nav className="flex-1 px-4 py-4 space-y-2">
-          <div className="bg-primary-600/20 text-primary-300 px-4 py-2 rounded-lg cursor-pointer">Overview</div>
+          <div className="bg-primary-600/20 text-primary-300 px-4 py-2 rounded-lg cursor-pointer flex items-center gap-2">
+            <CheckCircle size={18} /> Overview
+          </div>
         </nav>
         <div className="p-4 border-t border-slate-800">
           <button onClick={onLogout} className="flex items-center gap-2 text-slate-400 hover:text-white transition-colors">
@@ -282,13 +284,13 @@ const UserDashboard: React.FC<UserDashboardProps> = ({ user, onLogout }) => {
            {/* Subscription Card */}
            <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
-                <h3 className="font-bold text-lg text-slate-800">Status Langganan</h3>
+                <h3 className="font-bold text-lg text-slate-800">Status Langganan Terkini</h3>
                 
                 <div className="flex gap-2">
-                   {/* Download Invoice Button */}
+                   {/* Download Invoice Button for Current */}
                    {subscription && (
                      <button
-                       onClick={downloadInvoice}
+                       onClick={() => downloadInvoice(subscription)}
                        className="px-3 py-2 border border-slate-300 text-slate-700 rounded-lg text-sm font-medium hover:bg-slate-50 transition-colors flex items-center gap-2"
                        title="Download Tagihan PDF"
                      >
@@ -392,7 +394,7 @@ const UserDashboard: React.FC<UserDashboardProps> = ({ user, onLogout }) => {
                                 <div className="bg-white p-4 rounded-lg mb-6 text-left border border-slate-200 shadow-sm">
                                   <div className="flex justify-between items-center border-b border-slate-100 pb-2 mb-3">
                                      <h5 className="font-bold text-slate-700 text-sm">Rekening Pembayaran:</h5>
-                                     <button onClick={downloadInvoice} className="text-xs text-blue-600 hover:underline flex items-center gap-1">
+                                     <button onClick={() => downloadInvoice(subscription)} className="text-xs text-blue-600 hover:underline flex items-center gap-1">
                                        <Download size={12}/> Download PDF
                                      </button>
                                   </div>
@@ -443,6 +445,63 @@ const UserDashboard: React.FC<UserDashboardProps> = ({ user, onLogout }) => {
              ) : (
                <div className="text-center py-8 text-slate-500">Belum ada data langganan.</div>
              )}
+           </div>
+
+           {/* Payment History Table */}
+           <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+              <div className="px-6 py-4 border-b border-slate-100 flex items-center gap-2">
+                 <History size={20} className="text-slate-500" />
+                 <h3 className="font-bold text-slate-800">Riwayat Pembayaran</h3>
+              </div>
+              <div className="overflow-x-auto">
+                 <table className="w-full text-sm text-left">
+                    <thead className="bg-slate-50 text-slate-500 font-medium">
+                       <tr>
+                          <th className="px-6 py-3">Tanggal</th>
+                          <th className="px-6 py-3">Paket</th>
+                          <th className="px-6 py-3">Nominal</th>
+                          <th className="px-6 py-3">Status</th>
+                          <th className="px-6 py-3 text-right">Invoice</th>
+                       </tr>
+                    </thead>
+                    <tbody className="divide-y divide-slate-100">
+                       {history.length > 0 ? history.map((hist) => (
+                          <tr key={hist.id} className="hover:bg-slate-50">
+                             <td className="px-6 py-4">
+                                {new Date(hist.created_at).toLocaleDateString('id-ID', {
+                                   day: 'numeric', month: 'long', year: 'numeric'
+                                })}
+                             </td>
+                             <td className="px-6 py-4">{hist.plan_name}</td>
+                             <td className="px-6 py-4 font-medium">Rp {hist.price.toLocaleString()}</td>
+                             <td className="px-6 py-4">
+                                <span className={`px-2 py-1 rounded-full text-xs font-bold uppercase ${
+                                   hist.status === 'active' ? 'bg-green-100 text-green-700' :
+                                   hist.status === 'pending' ? 'bg-yellow-100 text-yellow-700' :
+                                   'bg-red-100 text-red-700'
+                                 }`}>
+                                   {hist.status}
+                                 </span>
+                             </td>
+                             <td className="px-6 py-4 text-right">
+                                <button 
+                                  onClick={() => downloadInvoice(hist)}
+                                  className="text-blue-600 hover:text-blue-800 font-medium text-xs flex items-center justify-end gap-1 ml-auto"
+                                >
+                                   <Download size={14} /> Download
+                                </button>
+                             </td>
+                          </tr>
+                       )) : (
+                          <tr>
+                             <td colSpan={5} className="px-6 py-12 text-center text-slate-500">
+                                Belum ada riwayat pembayaran.
+                             </td>
+                          </tr>
+                       )}
+                    </tbody>
+                 </table>
+              </div>
            </div>
         </div>
       </main>
