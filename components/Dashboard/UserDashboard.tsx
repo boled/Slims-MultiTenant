@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { supabase } from '../../services/supabaseClient';
 import { UserProfile, Subscription } from '../../types';
-import { Upload, CheckCircle, Clock, AlertCircle, LogOut, FileImage, Calendar, AlertTriangle, RefreshCw } from 'lucide-react';
+import { Upload, CheckCircle, Clock, AlertCircle, LogOut, FileImage, Calendar, AlertTriangle, RefreshCw, CreditCard, Wallet, Download } from 'lucide-react';
+import { jsPDF } from 'jspdf';
 
 interface UserDashboardProps {
   user: UserProfile;
@@ -105,6 +106,111 @@ const UserDashboard: React.FC<UserDashboardProps> = ({ user, onLogout }) => {
     }
   };
 
+  const downloadInvoice = () => {
+    if (!subscription) return;
+
+    const doc = new jsPDF();
+    const primaryColor = '#2563eb';
+    
+    // Header
+    doc.setFontSize(22);
+    doc.setTextColor(primaryColor);
+    doc.text("INVOICE / TAGIHAN", 105, 20, { align: "center" });
+    doc.setFontSize(10);
+    doc.setTextColor(100);
+    doc.text(`CloudSLiMS Indonesia`, 105, 26, { align: "center" });
+    
+    doc.setDrawColor(200);
+    doc.line(20, 32, 190, 32);
+
+    // Invoice Info
+    doc.setFontSize(10);
+    doc.setTextColor(0);
+    
+    const today = new Date().toLocaleDateString('id-ID');
+    const invoiceId = subscription.id.split('-')[0].toUpperCase();
+
+    // Left Side (Bill To)
+    doc.setFont("helvetica", "bold");
+    doc.text("DITAGIHKAN KEPADA:", 20, 45);
+    doc.setFont("helvetica", "normal");
+    doc.text(user.full_name, 20, 52);
+    doc.text(user.institution, 20, 58);
+    doc.text(`Telp: ${user.phone}`, 20, 64);
+
+    // Right Side (Invoice Detail)
+    doc.text(`No. Invoice: INV-${invoiceId}`, 130, 45);
+    doc.text(`Tanggal: ${today}`, 130, 52);
+    doc.text(`Status: ${subscription.status.toUpperCase()}`, 130, 58);
+
+    // Table Content
+    let yPos = 80;
+    
+    // Table Header
+    doc.setFillColor(240, 240, 240);
+    doc.rect(20, yPos, 170, 10, 'F');
+    doc.setFont("helvetica", "bold");
+    doc.text("DESKRIPSI LAYANAN", 25, yPos + 7);
+    doc.text("HARGA", 160, yPos + 7);
+    
+    yPos += 18;
+    
+    // Table Item
+    doc.setFont("helvetica", "bold");
+    doc.text(`Paket Langganan CloudSLiMS: ${subscription.plan_name}`, 25, yPos);
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(9);
+    doc.text(`Domain: ${user.subdomain}.eslims.my.id`, 25, yPos + 6);
+    doc.text(`Masa Aktif: 1 Tahun`, 25, yPos + 11);
+    
+    // Price
+    doc.setFontSize(10);
+    doc.text(`Rp ${subscription.price.toLocaleString('id-ID')}`, 160, yPos);
+    
+    // Total Line
+    yPos += 20;
+    doc.line(20, yPos, 190, yPos);
+    yPos += 10;
+    
+    doc.setFontSize(12);
+    doc.setFont("helvetica", "bold");
+    doc.text("TOTAL TAGIHAN:", 120, yPos);
+    doc.setTextColor(primaryColor);
+    doc.text(`Rp ${subscription.price.toLocaleString('id-ID')}`, 160, yPos);
+
+    // Payment Info
+    yPos += 20;
+    doc.setTextColor(0);
+    doc.setFontSize(10);
+    doc.setFont("helvetica", "bold");
+    doc.text("INSTRUKSI PEMBAYARAN:", 20, yPos);
+    
+    yPos += 8;
+    doc.setFont("helvetica", "normal");
+    doc.text("Silakan transfer sesuai nominal ke salah satu rekening berikut:", 20, yPos);
+    
+    yPos += 10;
+    doc.setFont("helvetica", "bold");
+    doc.text("BANK MANDIRI", 20, yPos);
+    doc.setFont("helvetica", "normal");
+    doc.text("139-00-1165110-0", 60, yPos);
+    doc.text("a.n AGUN NURUL WIDIYANTO", 110, yPos);
+    
+    yPos += 7;
+    doc.setFont("helvetica", "bold");
+    doc.text("GOPAY / DANA", 20, yPos);
+    doc.setFont("helvetica", "normal");
+    doc.text("0856-4781-8779", 60, yPos);
+    doc.text("a.n AGUN NURUL WIDIYANTO", 110, yPos);
+
+    // Footer
+    doc.setFontSize(8);
+    doc.setTextColor(150);
+    doc.text("Terima kasih telah mempercayakan layanan perpustakaan digital Anda kepada CloudSLiMS.", 105, 280, { align: "center" });
+
+    doc.save(`Invoice-CloudSLiMS-${user.subdomain}-${Date.now()}.pdf`);
+  };
+
   // Helper to calculate days remaining
   const getDaysRemaining = (validUntil: string) => {
     const today = new Date();
@@ -175,18 +281,34 @@ const UserDashboard: React.FC<UserDashboardProps> = ({ user, onLogout }) => {
         <div className="grid gap-6">
            {/* Subscription Card */}
            <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
-             <div className="flex justify-between items-center mb-4">
-                <h3 className="font-bold text-lg">Status Langganan</h3>
-                {subscription?.status === 'active' && (isExpiringSoon || isExpired) && (
-                   <button 
-                    onClick={handleRenewal}
-                    disabled={renewing}
-                    className="bg-primary-600 hover:bg-primary-700 text-white px-4 py-2 rounded-lg text-sm font-medium flex items-center gap-2 transition-colors disabled:opacity-70"
-                   >
-                     {renewing ? <RefreshCw className="animate-spin" size={16} /> : <RefreshCw size={16} />}
-                     Perpanjang Layanan
-                   </button>
-                )}
+             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
+                <h3 className="font-bold text-lg text-slate-800">Status Langganan</h3>
+                
+                <div className="flex gap-2">
+                   {/* Download Invoice Button */}
+                   {subscription && (
+                     <button
+                       onClick={downloadInvoice}
+                       className="px-3 py-2 border border-slate-300 text-slate-700 rounded-lg text-sm font-medium hover:bg-slate-50 transition-colors flex items-center gap-2"
+                       title="Download Tagihan PDF"
+                     >
+                       <Download size={16} />
+                       <span className="hidden sm:inline">Invoice</span>
+                     </button>
+                   )}
+
+                   {/* Renew Button */}
+                   {subscription?.status === 'active' && (isExpiringSoon || isExpired) && (
+                      <button 
+                       onClick={handleRenewal}
+                       disabled={renewing}
+                       className="bg-primary-600 hover:bg-primary-700 text-white px-4 py-2 rounded-lg text-sm font-medium flex items-center gap-2 transition-colors disabled:opacity-70"
+                      >
+                        {renewing ? <RefreshCw className="animate-spin" size={16} /> : <RefreshCw size={16} />}
+                        Perpanjang Layanan
+                      </button>
+                   )}
+                </div>
              </div>
              
              {subscription ? (
@@ -242,7 +364,7 @@ const UserDashboard: React.FC<UserDashboardProps> = ({ user, onLogout }) => {
                        </div>
                     ) : (
                       <>
-                        <h4 className="font-medium text-slate-900 mb-2">
+                        <h4 className="font-medium text-slate-900 mb-4">
                           {subscription.status === 'active' && isExpired 
                             ? "Layanan Non-Aktif" 
                             : "Konfirmasi Pembayaran"}
@@ -266,10 +388,46 @@ const UserDashboard: React.FC<UserDashboardProps> = ({ user, onLogout }) => {
                                </div>
                             ) : (
                               <div className="w-full">
-                                <p className="text-sm text-slate-500 mb-4">Silakan transfer <b>Rp {subscription.price.toLocaleString()}</b> ke BCA 1234567890 an. CloudSLiMS, lalu upload bukti transfer di sini.</p>
+                                {/* Informasi Pembayaran Baru */}
+                                <div className="bg-white p-4 rounded-lg mb-6 text-left border border-slate-200 shadow-sm">
+                                  <div className="flex justify-between items-center border-b border-slate-100 pb-2 mb-3">
+                                     <h5 className="font-bold text-slate-700 text-sm">Rekening Pembayaran:</h5>
+                                     <button onClick={downloadInvoice} className="text-xs text-blue-600 hover:underline flex items-center gap-1">
+                                       <Download size={12}/> Download PDF
+                                     </button>
+                                  </div>
+                                  
+                                  <div className="space-y-3 text-sm">
+                                    <div>
+                                      <p className="text-xs text-slate-500 mb-0.5">Atas Nama</p>
+                                      <p className="font-bold text-slate-900 uppercase">AGUN NURUL WIDIYANTO</p>
+                                    </div>
+                                    
+                                    <div className="flex items-center justify-between bg-slate-50 p-2 rounded border border-slate-100">
+                                       <div className="flex items-center gap-2">
+                                         <CreditCard size={16} className="text-blue-600" />
+                                         <span className="font-semibold text-slate-700">Bank Mandiri</span>
+                                       </div>
+                                       <span className="font-mono font-bold text-slate-900 select-all">1390011651100</span>
+                                    </div>
+
+                                    <div className="flex items-center justify-between bg-slate-50 p-2 rounded border border-slate-100">
+                                       <div className="flex items-center gap-2">
+                                         <Wallet size={16} className="text-blue-500" />
+                                         <span className="font-semibold text-slate-700">GOPAY / DANA</span>
+                                       </div>
+                                       <span className="font-mono font-bold text-slate-900 select-all">085647818779</span>
+                                    </div>
+                                  </div>
+                                </div>
+
+                                <p className="text-sm text-slate-500 mb-4">
+                                  Silakan transfer sebesar <b className="text-slate-900">Rp {subscription.price.toLocaleString()}</b> ke salah satu rekening di atas, lalu upload bukti transfer di sini.
+                                </p>
+
                                 <label className="cursor-pointer block w-full">
                                   <input type="file" className="hidden" accept="image/*" onChange={handleFileUpload} disabled={uploading} />
-                                  <div className="bg-primary-600 hover:bg-primary-700 text-white py-2 px-4 rounded-lg flex items-center justify-center gap-2 transition-colors">
+                                  <div className="bg-primary-600 hover:bg-primary-700 text-white py-2 px-4 rounded-lg flex items-center justify-center gap-2 transition-colors shadow-sm">
                                     {uploading ? <Clock className="animate-spin" /> : <Upload size={18} />}
                                     <span>Upload Bukti Bayar</span>
                                   </div>
