@@ -21,7 +21,11 @@ import {
   Smartphone,
   Globe,
   TrendingUp,
-  Clock
+  Clock,
+  CheckCircle,
+  XCircle,
+  Building2,
+  CreditCard
 } from 'lucide-react';
 
 interface AdminDashboardProps {
@@ -102,11 +106,13 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout }) => {
   };
 
   const updateStatus = async (id: string, newStatus: 'active' | 'rejected') => {
-    if (!confirm(`Ubah status menjadi ${newStatus}?`)) return;
+    const actionName = newStatus === 'active' ? 'Setujui & Aktifkan' : 'Tolak';
+    if (!confirm(`Apakah Anda yakin ingin melakukan tindakan: ${actionName}?`)) return;
+    
     try {
       const updates: any = { status: newStatus };
       
-      // Jika di-approve menjadi active, set masa aktif 1 tahun dari sekarang
+      // Jika di-approve menjadi active, set masa aktif 1 tahun dari HARI INI
       if (newStatus === 'active') {
         const nextYear = new Date();
         nextYear.setFullYear(nextYear.getFullYear() + 1);
@@ -115,10 +121,13 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout }) => {
 
       const { error } = await supabase.from('subscriptions').update(updates).eq('id', id);
       if (error) throw error;
+      
+      alert(`Status berhasil diperbarui menjadi ${newStatus}`);
       fetchData();
       if (isViewModalOpen) setIsViewModalOpen(false); // Close modal if open to refresh context
     } catch (err) {
       alert("Error updating status");
+      console.error(err);
     }
   };
 
@@ -411,7 +420,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout }) => {
                          <button 
                           onClick={() => openViewModal(sub)}
                           className="p-1.5 bg-indigo-50 text-indigo-600 rounded hover:bg-indigo-100 transition-colors" 
-                          title="Lihat Detail"
+                          title="Lihat Detail & Validasi"
                         >
                           <Eye size={16} />
                         </button>
@@ -488,108 +497,147 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout }) => {
         </div>
       </main>
 
-      {/* Edit Modal */}
+      {/* Edit Modal Refined */}
       {isEditModalOpen && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
           <div 
             className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm"
             onClick={() => setIsEditModalOpen(false)}
           ></div>
-          <div className="relative bg-white rounded-xl shadow-2xl w-full max-w-lg overflow-hidden animate-fade-in-up">
-            <div className="bg-slate-800 px-6 py-4 flex items-center justify-between text-white">
+          <div className="relative bg-white rounded-xl shadow-2xl w-full max-w-lg overflow-hidden animate-fade-in-up flex flex-col max-h-[90vh]">
+            {/* Modal Header */}
+            <div className="bg-slate-800 px-6 py-4 flex items-center justify-between text-white shrink-0">
               <h3 className="font-bold flex items-center gap-2">
                 <Edit size={18} /> Edit Data Tenant
               </h3>
-              <button onClick={() => setIsEditModalOpen(false)} className="hover:text-slate-300"><X size={20}/></button>
+              <button onClick={() => setIsEditModalOpen(false)} className="hover:text-slate-300 transition-colors"><X size={20}/></button>
             </div>
             
-            <form onSubmit={handleEditSubmit} className="p-6 space-y-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div className="col-span-2">
-                  <label className="block text-sm font-medium text-slate-700 mb-1">Nama Instansi</label>
-                  <input 
-                    type="text" 
-                    required
-                    className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
-                    value={editFormData.institution}
-                    onChange={(e) => setEditFormData({...editFormData, institution: e.target.value})}
-                  />
-                </div>
+            {/* Modal Body */}
+            <form onSubmit={handleEditSubmit} className="flex-1 overflow-y-auto">
+              <div className="p-6 space-y-6">
                 
-                <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1">Nama Kontak</label>
-                  <input 
-                    type="text" 
-                    required
-                    className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
-                    value={editFormData.full_name}
-                    onChange={(e) => setEditFormData({...editFormData, full_name: e.target.value})}
-                  />
+                {/* Section 1: Tenant Profile */}
+                <div className="space-y-4">
+                   <div className="flex items-center gap-2 text-slate-800 border-b pb-2">
+                      <Building2 size={18} className="text-blue-600" />
+                      <h4 className="font-bold text-sm uppercase tracking-wide">Informasi Tenant</h4>
+                   </div>
+                   
+                   <div className="grid grid-cols-1 gap-4">
+                      <div>
+                        <label className="block text-xs font-semibold text-slate-500 uppercase mb-1">Nama Instansi</label>
+                        <input 
+                          type="text" 
+                          required
+                          className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none text-slate-800"
+                          value={editFormData.institution}
+                          onChange={(e) => setEditFormData({...editFormData, institution: e.target.value})}
+                        />
+                      </div>
+                      
+                      <div>
+                        <label className="block text-xs font-semibold text-slate-500 uppercase mb-1">Nama Kontak</label>
+                        <input 
+                          type="text" 
+                          required
+                          className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none text-slate-800"
+                          value={editFormData.full_name}
+                          onChange={(e) => setEditFormData({...editFormData, full_name: e.target.value})}
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block text-xs font-semibold text-slate-500 uppercase mb-1">Alamat Subdomain</label>
+                        <div className="flex rounded-lg shadow-sm">
+                           <input 
+                            type="text" 
+                            required
+                            className="flex-1 px-3 py-2 border border-slate-300 rounded-l-lg focus:ring-2 focus:ring-blue-500 outline-none text-right font-medium text-slate-800"
+                            value={editFormData.subdomain}
+                            onChange={(e) => setEditFormData({...editFormData, subdomain: e.target.value})}
+                          />
+                          <span className="inline-flex items-center px-3 rounded-r-lg border border-l-0 border-slate-300 bg-slate-100 text-slate-500 text-sm">
+                            .eslims.my.id
+                          </span>
+                        </div>
+                      </div>
+                   </div>
                 </div>
 
-                <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1">Subdomain</label>
-                  <input 
-                    type="text" 
-                    required
-                    className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
-                    value={editFormData.subdomain}
-                    onChange={(e) => setEditFormData({...editFormData, subdomain: e.target.value})}
-                  />
+                {/* Section 2: Subscription Status */}
+                <div className="space-y-4">
+                   <div className="flex items-center gap-2 text-slate-800 border-b pb-2">
+                      <CreditCard size={18} className="text-green-600" />
+                      <h4 className="font-bold text-sm uppercase tracking-wide">Status & Paket</h4>
+                   </div>
+                   
+                   <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-xs font-semibold text-slate-500 uppercase mb-1">Pilih Paket</label>
+                        <select 
+                          className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none bg-white"
+                          value={editFormData.plan_name}
+                          onChange={(e) => setEditFormData({...editFormData, plan_name: e.target.value})}
+                        >
+                          <option value="Starter">Starter</option>
+                          <option value="Pro">Pro</option>
+                          <option value="Enterprise">Enterprise</option>
+                        </select>
+                      </div>
+
+                      <div>
+                        <label className="block text-xs font-semibold text-slate-500 uppercase mb-1">Status Akun</label>
+                        <select 
+                          className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none font-medium ${
+                            editFormData.status === 'active' ? 'bg-green-50 border-green-200 text-green-700' :
+                            editFormData.status === 'pending' ? 'bg-yellow-50 border-yellow-200 text-yellow-700' :
+                            'bg-slate-50 border-slate-200 text-slate-700'
+                          }`}
+                          value={editFormData.status}
+                          onChange={(e) => setEditFormData({...editFormData, status: e.target.value})}
+                        >
+                          <option value="pending">Pending</option>
+                          <option value="active">Active</option>
+                          <option value="rejected">Rejected</option>
+                          <option value="expired">Expired</option>
+                        </select>
+                      </div>
+
+                      <div className="col-span-2">
+                        <label className="block text-xs font-semibold text-slate-500 uppercase mb-1">Berlaku Sampai (Valid Until)</label>
+                        <input 
+                          type="date" 
+                          className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
+                          value={editFormData.valid_until}
+                          onChange={(e) => setEditFormData({...editFormData, valid_until: e.target.value})}
+                        />
+                         {editFormData.status === 'active' && !editFormData.valid_until && (
+                           <div className="mt-2 flex items-start gap-2 text-xs text-blue-600 bg-blue-50 p-2 rounded">
+                              <AlertCircle size={14} className="mt-0.5 shrink-0" />
+                              <p>Jika dikosongkan saat status <b>Active</b>, sistem akan otomatis set 1 tahun dari sekarang.</p>
+                           </div>
+                         )}
+                      </div>
+                   </div>
                 </div>
 
-                <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1">Paket</label>
-                  <select 
-                    className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
-                    value={editFormData.plan_name}
-                    onChange={(e) => setEditFormData({...editFormData, plan_name: e.target.value})}
-                  >
-                    <option value="Starter">Starter</option>
-                    <option value="Pro">Pro</option>
-                    <option value="Enterprise">Enterprise</option>
-                  </select>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1">Status</label>
-                  <select 
-                    className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
-                    value={editFormData.status}
-                    onChange={(e) => setEditFormData({...editFormData, status: e.target.value})}
-                  >
-                    <option value="pending">Pending</option>
-                    <option value="active">Active</option>
-                    <option value="rejected">Rejected</option>
-                    <option value="expired">Expired</option>
-                  </select>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1">Masa Aktif Sampai</label>
-                  <input 
-                    type="date" 
-                    className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
-                    value={editFormData.valid_until}
-                    onChange={(e) => setEditFormData({...editFormData, valid_until: e.target.value})}
-                  />
-                  <p className="text-xs text-slate-500 mt-1">Kosongkan untuk set otomatis 1 tahun saat status Active.</p>
-                </div>
               </div>
 
-              <div className="pt-4 flex justify-end gap-3">
+              {/* Modal Footer */}
+              <div className="p-4 bg-slate-50 border-t border-slate-100 flex justify-end gap-3 shrink-0">
                 <button 
                   type="button" 
                   onClick={() => setIsEditModalOpen(false)}
-                  className="px-4 py-2 text-slate-600 hover:bg-slate-100 rounded-lg transition-colors"
+                  className="px-4 py-2 text-slate-600 hover:bg-slate-200 rounded-lg transition-colors text-sm font-medium"
                 >
                   Batal
                 </button>
                 <button 
                   type="submit"
-                  className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg flex items-center gap-2 transition-colors"
+                  className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg flex items-center gap-2 transition-colors text-sm font-medium shadow-sm"
                 >
-                  <Save size={18} /> Simpan Perubahan
+                  <Save size={16} /> Simpan Perubahan
                 </button>
               </div>
             </form>
@@ -687,6 +735,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout }) => {
                          <th className="px-4 py-2">Tanggal</th>
                          <th className="px-4 py-2">Paket</th>
                          <th className="px-4 py-2">Harga</th>
+                         <th className="px-4 py-2">Masa Aktif</th>
                          <th className="px-4 py-2">Status</th>
                          <th className="px-4 py-2">Bukti</th>
                        </tr>
@@ -699,6 +748,11 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout }) => {
                               </td>
                               <td className="px-4 py-2 font-medium">{hist.plan_name}</td>
                               <td className="px-4 py-2">Rp {hist.price.toLocaleString()}</td>
+                              <td className="px-4 py-2 text-slate-500">
+                                {hist.valid_until 
+                                  ? new Date(hist.valid_until).toLocaleDateString('id-ID') 
+                                  : '-'}
+                              </td>
                               <td className="px-4 py-2">
                                 <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase ${
                                     hist.status === 'active' ? 'bg-green-100 text-green-700' :
@@ -722,10 +776,30 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onLogout }) => {
 
             </div>
             
-            <div className="p-4 border-t bg-slate-50 flex justify-end">
+            <div className="p-4 border-t bg-slate-50 flex justify-between items-center">
+              {/* Validation Buttons Inside View Modal */}
+              <div className="flex gap-2">
+                 {viewingItem.status === 'pending' && (
+                    <>
+                      <button 
+                        onClick={() => updateStatus(viewingItem.id, 'active')}
+                        className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg flex items-center gap-2 transition-colors font-medium text-sm"
+                      >
+                        <CheckCircle size={16} /> Approve & Aktifkan
+                      </button>
+                      <button 
+                        onClick={() => updateStatus(viewingItem.id, 'rejected')}
+                        className="px-4 py-2 bg-red-100 hover:bg-red-200 text-red-700 rounded-lg flex items-center gap-2 transition-colors font-medium text-sm"
+                      >
+                        <XCircle size={16} /> Tolak
+                      </button>
+                    </>
+                 )}
+              </div>
+
               <button 
                 onClick={() => setIsViewModalOpen(false)}
-                className="px-4 py-2 bg-slate-200 hover:bg-slate-300 text-slate-800 rounded-lg transition-colors font-medium"
+                className="px-4 py-2 bg-slate-200 hover:bg-slate-300 text-slate-800 rounded-lg transition-colors font-medium text-sm"
               >
                 Tutup
               </button>
